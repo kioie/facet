@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Facet MCP API",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "JSON schemas and example responses for Facet MCP tools. Used by agents for auto-discovery.",
   "tools": [
     {
@@ -37,6 +37,10 @@
           "profile": {
             "type": "string",
             "description": "Named profile from facet.json (e.g. 'coding', 'review'). Profiles add preferred clusters and budget overrides."
+          },
+          "manifestId": {
+            "type": "string",
+            "description": "Cached manifest id from facet_register_manifest. Omit tools when set."
           }
         },
         "required": ["task"]
@@ -255,6 +259,7 @@
       "outputSchema": {
         "type": "object",
         "properties": {
+          "manifestId": { "type": "string", "description": "Id to pass to facet_plan_surface and facet_audit_tools" },
           "registered": { "type": "integer", "description": "Number of tools cached" },
           "totalTokens": { "type": "integer", "description": "Total token cost of the cached manifest" }
         }
@@ -262,7 +267,7 @@
       "examples": [
         {
           "input": { "tools": [{ "name": "mcp__filesystem__read_file" }, { "name": "mcp__git__diff" }] },
-          "output": { "registered": 2, "totalTokens": 540 }
+          "output": { "manifestId": "m1", "registered": 2, "totalTokens": 540 }
         }
       ]
     }

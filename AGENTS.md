@@ -66,6 +66,7 @@ Select tools for the current task under a token budget.
 **Parameters:**
 - `task` (string, required) — what the agent is trying to accomplish. Use verb + target: "fix login validation bug"
 - `tools` (array, optional) — tool definitions (omit if manifest registered via `facet_register_manifest`)
+- `manifestId` (string, optional) — cached manifest id from `facet_register_manifest`
 - `budget` (number, default 6000) — token budget for selected tools
 - `profile` (string, optional) — named profile from `facet.json` (`"coding"` | `"review"`)
 
@@ -113,10 +114,11 @@ Cache the full tool list server-side so `facet_plan_surface` can re-plan cheaply
 
 **Parameters:**
 - `tools` (array, required) — full tool manifest to cache
+- `id` (string, optional) — manifest id for later `manifestId` references
 
 **Returns:**
 ```json
-{ "registered": 22, "totalTokens": 8412 }
+{ "manifestId": "m1", "registered": 22, "totalTokens": 8412 }
 ```
 
 ## Budget guidance

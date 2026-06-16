@@ -1,180 +1,283 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/kioie/facet/blob/main/docs/agent-api.json",
-  "title": "Facet Agent API",
-  "description": "JSON schemas for Facet MCP tool inputs and outputs",
-  "definitions": {
-    "ToolDefinition": {
-      "type": "object",
-      "description": "A single MCP tool definition",
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "Unique tool name, e.g. mcp__github__create_pr"
-        },
-        "description": {
-          "type": "string",
-          "description": "Human-readable description of what the tool does"
-        },
-        "inputSchema": {
-          "type": "object",
-          "description": "JSON Schema for the tool's input parameters"
-        },
-        "namespace": {
-          "type": "string",
-          "description": "Tool namespace / MCP server name, e.g. github, filesystem"
-        }
-      },
-      "required": ["name"]
-    },
-    "ClusterSummary": {
-      "type": "object",
-      "properties": {
-        "id": { "type": "string", "description": "Cluster identifier, e.g. git, filesystem, notion" },
-        "label": { "type": "string" },
-        "toolCount": { "type": "number" },
-        "tokens": { "type": "number", "description": "Total token cost for tools in this cluster" }
-      },
-      "required": ["id", "label", "toolCount", "tokens"]
-    }
-  },
-  "tools": {
-    "facet_plan_surface": {
-      "description": "Select a task-specific subset of tools under a token budget",
-      "input": {
+  "title": "Facet MCP API",
+  "version": "0.1.0",
+  "description": "JSON schemas and example responses for Facet MCP tools. Used by agents for auto-discovery.",
+  "tools": [
+    {
+      "name": "facet_plan_surface",
+      "description": "Select tools for the current task under a token budget. Returns selected tools (with distilled schemas), deferred tools, before/after token counts, savings percentage, and per-tool routing reasons. Call this before each subtask instead of loading all tool schemas.",
+      "inputSchema": {
         "type": "object",
         "properties": {
           "task": {
             "type": "string",
-            "description": "The current agent goal or subtask description. More specific = better routing.",
-            "examples": [
-              "fix the login validation bug in auth middleware",
-              "search notion for onboarding documentation",
-              "create a pull request for the bugfix branch"
-            ]
+            "description": "What the agent is trying to accomplish. Use verb + target for best results. Example: 'fix login validation bug in auth middleware'."
           },
           "tools": {
             "type": "array",
-            "items": { "$ref": "#/definitions/ToolDefinition" },
-            "description": "Full tool manifest. Required unless manifestId is provided."
-          },
-          "manifestId": {
-            "type": "string",
-            "description": "ID returned by facet_register_manifest. Use this to avoid resending the full manifest."
+            "description": "Tool definitions to route. Omit if manifest was already registered via facet_register_manifest.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "inputSchema": { "type": "object" }
+              },
+              "required": ["name"]
+            }
           },
           "budget": {
             "type": "number",
+            "description": "Token budget for selected tools. Default: 6000. Increase to 10000 for multi-domain tasks.",
             "default": 6000,
-            "description": "Maximum token budget for the returned tool surface. Recommended: 4000–8000."
+            "minimum": 500,
+            "maximum": 50000
           },
           "profile": {
             "type": "string",
-            "enum": ["coding", "review"],
-            "description": "Named profile from facet.json. Applies pin/block/prefer constraints."
+            "description": "Named profile from facet.json (e.g. 'coding', 'review'). Profiles add preferred clusters and budget overrides."
           }
         },
-        "required": [],
-        "anyOf": [
-          { "required": ["task", "tools"] },
-          { "required": ["task", "manifestId"] }
-        ]
+        "required": ["task"]
       },
-      "output": {
+      "outputSchema": {
         "type": "object",
         "properties": {
           "task": { "type": "string" },
-          "budget": { "type": "number" },
           "selected": {
             "type": "array",
-            "items": { "$ref": "#/definitions/ToolDefinition" },
-            "description": "Tools to use for this subtask — these fit within the token budget and are relevant to the task"
+            "description": "Tools to use for this subtask (distilled schemas, fits within budget)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "inputSchema": { "type": "object" }
+              }
+            }
           },
           "deferred": {
             "type": "array",
-            "items": { "$ref": "#/definitions/ToolDefinition" },
-            "description": "Tools not surfaced this turn — re-plan when the task shifts to access them"
+            "description": "Tools held back to save tokens — re-plan with a different task to surface them",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" }
+              }
+            }
           },
-          "tokensBefore": {
-            "type": "number",
-            "description": "Total tokens if all tools were sent (baseline)"
-          },
-          "tokensAfter": {
-            "type": "number",
-            "description": "Actual tokens consumed by the selected surface"
-          },
-          "savingsPercent": {
-            "type": "number",
-            "description": "Percentage of tokens saved: (before - after) / before * 100"
-          },
+          "tokensBefore": { "type": "integer", "description": "Total token cost of all tools before routing" },
+          "tokensAfter": { "type": "integer", "description": "Total token cost of selected tools after routing" },
+          "savingsPercent": { "type": "number", "description": "Percentage reduction in token cost (0–100)" },
           "reasons": {
             "type": "object",
-            "additionalProperties": { "type": "string" },
-            "description": "Per-tool reason string explaining why it was selected or deferred"
+            "description": "Per-tool routing decision — score and cluster for selected, reason for deferral",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      },
+      "examples": [
+        {
+          "input": { "task": "fix the login validation bug", "budget": 4000 },
+          "output": {
+            "task": "fix the login validation bug",
+            "selected": [
+              {
+                "name": "mcp__filesystem__read_file",
+                "description": "Read the complete contents of a file...",
+                "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } }
+              },
+              {
+                "name": "mcp__filesystem__grep",
+                "description": "Search file contents using regular expressions...",
+                "inputSchema": { "type": "object", "properties": { "pattern": { "type": "string" } } }
+              },
+              {
+                "name": "mcp__shell__run",
+                "description": "Execute an arbitrary shell command...",
+                "inputSchema": { "type": "object", "properties": { "command": { "type": "string" } } }
+              },
+              {
+                "name": "mcp__git__diff",
+                "description": "Show changes between working tree and index...",
+                "inputSchema": { "type": "object", "properties": {} }
+              },
+              {
+                "name": "mcp__git__status",
+                "description": "Show working tree status...",
+                "inputSchema": { "type": "object", "properties": {} }
+              }
+            ],
+            "deferred": [
+              { "name": "mcp__notion__search" },
+              { "name": "mcp__slack__post_message" },
+              { "name": "mcp__stripe__create_payment_intent" },
+              { "name": "mcp__datadog__query_metrics" }
+            ],
+            "tokensBefore": 8412,
+            "tokensAfter": 1240,
+            "savingsPercent": 85.3,
+            "reasons": {
+              "mcp__filesystem__read_file": "score=0.85 cluster=filesystem",
+              "mcp__filesystem__grep": "score=0.72 cluster=filesystem",
+              "mcp__shell__run": "score=0.61 cluster=runtime",
+              "mcp__git__diff": "score=0.54 cluster=git",
+              "mcp__git__status": "score=0.48 cluster=git",
+              "mcp__notion__search": "deferred: budget (350 tok)",
+              "mcp__slack__post_message": "deferred: budget (290 tok)",
+              "mcp__stripe__create_payment_intent": "deferred: budget (480 tok)"
+            }
           }
         },
-        "required": ["selected", "deferred", "tokensBefore", "tokensAfter", "savingsPercent", "reasons"]
-      }
+        {
+          "input": { "task": "search notion for onboarding documentation", "budget": 4000 },
+          "output": {
+            "task": "search notion for onboarding documentation",
+            "selected": [
+              { "name": "mcp__notion__search" },
+              { "name": "mcp__notion__get_page" },
+              { "name": "mcp__filesystem__read_file" },
+              { "name": "mcp__github__list_issues" }
+            ],
+            "deferred": [
+              { "name": "mcp__shell__run" },
+              { "name": "mcp__git__diff" },
+              { "name": "mcp__stripe__create_payment_intent" }
+            ],
+            "tokensBefore": 8412,
+            "tokensAfter": 1360,
+            "savingsPercent": 83.8,
+            "reasons": {
+              "mcp__notion__search": "score=0.91 cluster=notion",
+              "mcp__notion__get_page": "score=0.77 cluster=notion",
+              "mcp__filesystem__read_file": "score=0.42 cluster=filesystem",
+              "mcp__github__list_issues": "score=0.21 cluster=github",
+              "mcp__shell__run": "deferred: budget (310 tok)",
+              "mcp__git__diff": "deferred: budget (220 tok)"
+            }
+          }
+        }
+      ]
     },
-    "facet_audit_tools": {
-      "description": "Audit token cost and capability clusters for a tool manifest",
-      "input": {
+    {
+      "name": "facet_audit_tools",
+      "description": "Measure token cost and capability clusters for a tool manifest. Use at session start to understand your baseline overhead before calling facet_plan_surface.",
+      "inputSchema": {
         "type": "object",
         "properties": {
           "tools": {
             "type": "array",
-            "items": { "$ref": "#/definitions/ToolDefinition" }
-          },
-          "manifestId": { "type": "string" }
-        }
+            "description": "Tool definitions to audit",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "inputSchema": { "type": "object" }
+              },
+              "required": ["name"]
+            }
+          }
+        },
+        "required": ["tools"]
       },
-      "output": {
+      "outputSchema": {
         "type": "object",
         "properties": {
-          "totalTools": { "type": "number" },
-          "totalTokens": { "type": "number" },
-          "clusters": {
-            "type": "array",
-            "items": { "$ref": "#/definitions/ClusterSummary" }
-          },
+          "totalTools": { "type": "integer" },
+          "totalTokens": { "type": "integer" },
           "entries": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "tool": { "$ref": "#/definitions/ToolDefinition" },
-                "tokens": { "type": "number" },
+                "tool": { "type": "object" },
+                "tokens": { "type": "integer" },
                 "cluster": { "type": "string" }
+              }
+            }
+          },
+          "clusters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "label": { "type": "string" },
+                "toolCount": { "type": "integer" },
+                "tokens": { "type": "integer" }
               }
             }
           }
         }
-      }
+      },
+      "examples": [
+        {
+          "input": { "tools": [{ "name": "mcp__filesystem__read_file" }, { "name": "mcp__git__diff" }] },
+          "output": {
+            "totalTools": 2,
+            "totalTokens": 540,
+            "entries": [
+              { "tool": { "name": "mcp__filesystem__read_file" }, "tokens": 320, "cluster": "filesystem" },
+              { "tool": { "name": "mcp__git__diff" }, "tokens": 220, "cluster": "git" }
+            ],
+            "clusters": [
+              { "id": "filesystem", "label": "filesystem", "toolCount": 1, "tokens": 320 },
+              { "id": "git", "label": "git", "toolCount": 1, "tokens": 220 }
+            ]
+          }
+        }
+      ]
     },
-    "facet_register_manifest": {
-      "description": "Cache a full tool manifest server-side for the session",
-      "input": {
+    {
+      "name": "facet_register_manifest",
+      "description": "Cache the full tool manifest server-side so facet_plan_surface can re-plan cheaply across subtasks without re-sending the full tool list each time. Call once at session start.",
+      "inputSchema": {
         "type": "object",
         "properties": {
           "tools": {
             "type": "array",
-            "items": { "$ref": "#/definitions/ToolDefinition" },
-            "description": "Full tool manifest to cache"
-          },
-          "id": {
-            "type": "string",
-            "description": "Optional custom manifest ID. Auto-generated if omitted."
+            "description": "Full tool manifest to cache",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "inputSchema": { "type": "object" }
+              },
+              "required": ["name"]
+            }
           }
         },
         "required": ["tools"]
       },
-      "output": {
+      "outputSchema": {
         "type": "object",
         "properties": {
-          "manifestId": { "type": "string" },
-          "totalTools": { "type": "number" },
-          "totalTokens": { "type": "number" }
+          "registered": { "type": "integer", "description": "Number of tools cached" },
+          "totalTokens": { "type": "integer", "description": "Total token cost of the cached manifest" }
         }
-      }
+      },
+      "examples": [
+        {
+          "input": { "tools": [{ "name": "mcp__filesystem__read_file" }, { "name": "mcp__git__diff" }] },
+          "output": { "registered": 2, "totalTokens": 540 }
+        }
+      ]
     }
+  ],
+  "mcpConfig": {
+    "command": "npx",
+    "args": ["-y", "facet", "mcp"]
+  },
+  "agentWorkflow": {
+    "steps": [
+      "1. Call facet_register_manifest(tools) — once, at session start",
+      "2. Call facet_plan_surface(task, budget=6000) — before each subtask",
+      "3. Use ONLY the tools in selected[] for this subtask",
+      "4. Task changes? Call facet_plan_surface again with the new task string."
+    ],
+    "note": "Always re-plan when the task domain shifts (e.g. coding → documentation → ops). Routing is cheap; re-plan liberally."
   }
 }

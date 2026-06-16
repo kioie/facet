@@ -1,34 +1,48 @@
 ---
-description: Use Facet to route MCP tools by task before each major subtask
+description: Use Facet MCP to route tool schemas by task before loading everything
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.py"]
+alwaysApply: true
 ---
 
-# Facet tool surface management
+# Facet — task-aware tool surface routing
 
-Facet is available as an MCP server (`facet_plan_surface`, `facet_audit_tools`, `facet_register_manifest`).
+When working with many MCP tools, use Facet to route a task-specific subset before loading all schemas into context.
 
 ## Workflow
 
-1. **Session start** — call `facet_register_manifest` with the full tool list once.
-2. **Before each major subtask** — call `facet_plan_surface` with the current task string and budget.
-3. **Use only the returned `selected` tools** for the next few turns.
-4. **Re-plan** when the goal shifts significantly.
+1. **Register the manifest once:**
+   ```
+   facet_register_manifest(tools=[...all tool definitions...])
+   ```
 
-## Budget
+2. **Route before each subtask:**
+   ```
+   facet_plan_surface(task="<verb + target>", budget=6000)
+   ```
+   Returns `selected` (use these), `deferred` (skip this turn), and savings %.
 
-- Bugfix / focused task: 4000–6000
-- Feature work: 6000–8000
-- Review / read-only: 3000–4000
+3. **Re-plan when the task domain shifts.**
+   Switching from coding → docs → ops? Call `facet_plan_surface` again.
 
-## Example
+## Task string examples
 
+| Situation | Task string |
+|-----------|------------|
+| Coding bug | `"fix login validation logic in auth module"` |
+| PR creation | `"create a pull request for the bugfix branch"` |
+| Docs search | `"search notion for onboarding documentation"` |
+| Observability | `"query datadog for error rate spike in payments"` |
+
+## Budget guide
+
+- Focused bugfix: 3000–5000
+- Feature work: 5000–7000
+- Multi-domain: 7000–10000
+
+## Setup
+
+```bash
+facet cursor   # prints MCP config snippet
 ```
-facet_plan_surface({
-  task: "fix the login validation bug in auth middleware",
-  manifestId: "session-1",
-  budget: 6000
-})
-```
 
-Returns selected tools, deferred tools, and token savings percentage.
-
-Do not assume deferred tools are gone — re-plan to access them.
+Add to `~/.cursor/mcp.json` → restart Cursor → tools appear automatically.

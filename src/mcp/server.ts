@@ -51,7 +51,7 @@ function resolveManifest(manifestId?: string, tools?: ToolDefinition[]): ToolDef
 
 export async function startFacetMcpServer(): Promise<void> {
   const server = new Server(
-    { name: "facet", version: "0.1.1" },
+    { name: "facet", version: "0.1.2" },
     { capabilities: { tools: {} } },
   );
 

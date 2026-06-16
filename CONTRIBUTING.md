@@ -32,7 +32,7 @@ git clone https://github.com/kioie/facet
 cd facet
 npm install
 npm test          # unit tests
-npm run eval      # evaluation suite (7/7 cases)
+npm run eval      # evaluation suite (10/10 cases)
 npm run build     # TypeScript compile
 ```
 
@@ -55,6 +55,7 @@ eval/
   fixtures/
     agent-tools.json      — agent-style tool manifest + eval cases
     mcp-heavy.json        — realistic MCP-heavy manifest + eval cases
+    github-tools.json     — GitHub/Slack/git routing eval cases
   runner.ts               — evaluation runner
   results.md              — latest eval results
 ```
@@ -77,7 +78,7 @@ eval/
 ## Submitting a PR
 
 - `npm test` must pass
-- `npm run eval` must pass (score >= current 7/7)
+- `npm run eval` must pass (score >= current 10/10)
 - Keep PRs focused — one feature or fix per PR
 - No AI-generated comments explaining what the code does
 

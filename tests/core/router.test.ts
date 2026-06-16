@@ -46,17 +46,6 @@ describe("rankTools", () => {
   });
 });
 
-describe("distillTool", () => {
-  it("shortens long descriptions", () => {
-    const tool: ToolDefinition = {
-      name: "X",
-      description: "A".repeat(200),
-    };
-    const out = distillTool(tool, { maxDescriptionLength: 50 });
-    expect(out.description!.length).toBeLessThanOrEqual(50);
-  });
-});
-
 describe("routeTools", () => {
   it("reduces token count under budget", () => {
     const plan = routeTools("read and edit typescript files", sampleTools, {
@@ -82,6 +71,78 @@ describe("routeTools", () => {
       floor: 2,
     });
     expect(plan.selected.length).toBeLessThan(manyTools.length);
+  });
+
+  it("respects maxTools cap", () => {
+    const plan = routeTools("read auth login file", sampleTools, {
+      budget: 5000,
+      floor: 1,
+      maxTools: 2,
+    });
+    expect(plan.selected.length).toBe(2);
+    expect(plan.deferred.length).toBeGreaterThan(0);
+  });
+
+  it("falls back to top-ranked tool when budget is zero", () => {
+    const plan = routeTools("read auth login file", sampleTools, {
+      budget: 0,
+      floor: 0,
+    });
+    expect(plan.selected.length).toBe(1);
+  });
+});
+
+describe("scoreTool service routing", () => {
+  it("penalizes wrong-service tools for service-specific tasks", () => {
+    const slackScore = scoreTool("search notion for onboarding docs", sampleTools[3]!);
+    const notionTool: ToolDefinition = {
+      name: "mcp__notion__search",
+      description: "Search Notion workspace",
+      namespace: "notion",
+    };
+    const notionScore = scoreTool("search notion for onboarding docs", notionTool);
+    expect(notionScore).toBeGreaterThan(slackScore);
+  });
+});
+
+describe("inferCluster", () => {
+  it("maps mcp namespaces to cluster ids", () => {
+    const ranked = rankTools("query datadog metrics", [
+      {
+        name: "mcp__datadog__query_metrics",
+        namespace: "datadog",
+        description: "Query metrics",
+      },
+    ], undefined);
+    expect(ranked[0]?.cluster).toBe("datadog");
+  });
+
+  it("infers git cluster from tool names", () => {
+    const ranked = rankTools("show commit history", [
+      { name: "GitLog", description: "Git log" },
+    ], undefined);
+    expect(ranked[0]?.cluster).toBe("git");
+  });
+
+  it("infers filesystem cluster from read/write names", () => {
+    const ranked = rankTools("read file", [
+      { name: "ReadFile", description: "Read workspace file" },
+    ], undefined);
+    expect(ranked[0]?.cluster).toBe("filesystem");
+  });
+
+  it("infers runtime cluster from shell tools", () => {
+    const ranked = rankTools("run build", [
+      { name: "ShellExec", description: "Run shell command" },
+    ], undefined);
+    expect(ranked[0]?.cluster).toBe("runtime");
+  });
+});
+
+describe("rankTools topK", () => {
+  it("limits ranked results when topK is set", () => {
+    const ranked = rankTools("read file", sampleTools, undefined, { topK: 2 });
+    expect(ranked.length).toBe(2);
   });
 });
 

@@ -1,6 +1,6 @@
 {
   "name": "@kioie/facet",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Task-aware MCP tool surface for coding agents — trim schema bloat, route tools by intent, integrate with Cursor and Claude Code.",
   "homepage": "https://github.com/kioie/facet#readme",
   "bugs": {
@@ -9,6 +9,7 @@
   "publishConfig": {
     "access": "public"
   },
+  "mcpName": "io.github.kioie/facet",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kioie/facet.git"

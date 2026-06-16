@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name("facet")
   .description("Task-aware MCP tool surface for coding agents")
-  .version("0.1.1");
+  .version("0.1.2");
 
 program
   .command("audit")
@@ -28,10 +28,10 @@ program
   .description("Route tools for a task under a token budget")
   .argument("<task>", "Task description")
   .option("-m, --manifest <path>", "Tool manifest JSON")
-  .option("-b, --budget <n>", "Token budget", "6000")
+  .option("-b, --budget <n>", "Token budget (overrides profile and facet.json default)")
   .option("-p, --profile <name>", "Named profile from facet.json")
   .option("--json", "JSON output")
-  .action((task: string, opts: { manifest?: string; budget: string; profile?: string; json?: boolean }) => {
+  .action((task: string, opts: { manifest?: string; budget?: string; profile?: string; json?: boolean }) => {
     const tools = opts.manifest ? loadTools(opts.manifest) : demoTools();
     const config = loadConfig();
     const profile = opts.profile ? resolveProfile(config, opts.profile) : undefined;
@@ -39,7 +39,9 @@ program
       console.error(`Unknown profile "${opts.profile}". Run facet init or add it to facet.json.`);
       process.exit(1);
     }
-    const budget = profile?.budget ?? Number(opts.budget);
+    const budget = opts.budget
+      ? Number(opts.budget)
+      : profile?.budget ?? config.defaultBudget;
     const plan = routeTools(task, tools, {
       budget,
       profile,

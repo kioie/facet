@@ -3,7 +3,7 @@
   "name": "io.github.kioie/facet",
   "title": "Facet",
   "description": "Task-aware MCP tool surface router for coding agents. Routes a token-budgeted tool subset per subtask.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "https://github.com/kioie/facet",
   "license": "MIT",
   "categories": ["developer-tools", "ai-agents", "mcp"],
@@ -12,7 +12,7 @@
     {
       "registryType": "npm",
       "identifier": "@kioie/facet",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "transport": {
         "type": "stdio"
       },

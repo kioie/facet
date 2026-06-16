@@ -1,0 +1,67 @@
+# .github/workflows/facet-audit.yml
+# Run Facet token audit on your MCP manifest in CI.
+# Fails if total tokens exceed a threshold.
+#
+# Usage:
+#   1. Copy this file to .github/workflows/facet-audit.yml
+#   2. Create your tool manifest at tools/mcp-manifest.json (JSON array of tool definitions)
+#   3. Adjust TOKEN_BUDGET to your team's threshold
+
+name: Facet Token Audit
+
+on:
+  pull_request:
+    paths:
+      - 'tools/**'
+      - '.cursor/mcp.json'
+      - 'package.json'
+  push:
+    branches: [main]
+
+jobs:
+  facet-audit:
+    runs-on: ubuntu-latest
+    env:
+      TOKEN_BUDGET: 8000   # fail if manifest exceeds this many tokens
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Facet
+        run: npm install -g facet
+
+      - name: Run token audit
+        id: audit
+        run: |
+          if [ -f tools/mcp-manifest.json ]; then
+            RESULT=$(facet audit tools/mcp-manifest.json)
+            echo "$RESULT"
+            TOKENS=$(echo "$RESULT" | jq '.totalTokens')
+            echo "total_tokens=$TOKENS" >> $GITHUB_OUTPUT
+            if [ "$TOKENS" -gt "$TOKEN_BUDGET" ]; then
+              echo "::error::Tool manifest exceeds token budget: $TOKENS > $TOKEN_BUDGET"
+              exit 1
+            fi
+            echo "::notice::Tool manifest: $TOKENS tokens (budget: $TOKEN_BUDGET)"
+          else
+            echo "No manifest at tools/mcp-manifest.json — skipping audit"
+          fi
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.audit.outputs.total_tokens
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tokens = ${{ steps.audit.outputs.total_tokens }};
+            const budget = parseInt(process.env.TOKEN_BUDGET);
+            const pct = ((tokens / budget) * 100).toFixed(0);
+            const status = tokens <= budget ? '✅' : '❌';
+            github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: `## Facet Token Audit ${status}\n\nMCP manifest: **${tokens.toLocaleString()} tokens** / ${budget.toLocaleString()} budget (${pct}%)\n\nRun \`facet audit tools/mcp-manifest.json\` locally to see breakdown by cluster.`
+            });

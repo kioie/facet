@@ -1,0 +1,34 @@
+---
+description: Use Facet to route MCP tools by task before each major subtask
+---
+
+# Facet tool surface management
+
+Facet is available as an MCP server (`facet_plan_surface`, `facet_audit_tools`, `facet_register_manifest`).
+
+## Workflow
+
+1. **Session start** — call `facet_register_manifest` with the full tool list once.
+2. **Before each major subtask** — call `facet_plan_surface` with the current task string and budget.
+3. **Use only the returned `selected` tools** for the next few turns.
+4. **Re-plan** when the goal shifts significantly.
+
+## Budget
+
+- Bugfix / focused task: 4000–6000
+- Feature work: 6000–8000
+- Review / read-only: 3000–4000
+
+## Example
+
+```
+facet_plan_surface({
+  task: "fix the login validation bug in auth middleware",
+  manifestId: "session-1",
+  budget: 6000
+})
+```
+
+Returns selected tools, deferred tools, and token savings percentage.
+
+Do not assume deferred tools are gone — re-plan to access them.

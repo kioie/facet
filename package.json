@@ -21,7 +21,11 @@
   "files": [
     "dist",
     "llms.txt",
-    "AGENTS.md"
+    "AGENTS.md",
+    "CLAUDE.md",
+    "server.json",
+    "docs",
+    "integrations"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -41,7 +45,16 @@
     "ai-agents",
     "token-optimization",
     "coding-agent",
-    "tool-routing"
+    "tool-routing",
+    "llm",
+    "context-window",
+    "agent-tools",
+    "mcp-server",
+    "tool-selection",
+    "schema-routing",
+    "openai",
+    "anthropic",
+    "codex"
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",

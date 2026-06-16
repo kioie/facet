@@ -1,22 +1,36 @@
 # Facet — llms.txt
 
-> Task-aware MCP tool surface for coding agents. npm package `facet`, CLI `facet`, MCP command `facet mcp`.
+> Task-aware MCP tool surface routing for coding agents.
+> npm package: `facet` | CLI: `facet` | MCP server: `facet mcp`
 
-## When to use
+## What Facet does
 
-- MCP tool schemas consume large portions of the context window before any user message
-- Agents have 20+ tools across multiple MCP servers enabled
-- You want task-specific tool subsets with measurable token savings
+Facet solves MCP tool-schema bloat: agents typically load every MCP tool at session start — filesystem, git, GitHub, Notion, Slack, Stripe, browser — consuming 8,000–20,000 tokens before the first message. Facet replaces that constant overhead with a single `facet_plan_surface` call that returns only the tools relevant to the current task — clustered by capability, scored by task intent, distilled for token efficiency, routed under your budget.
+
+**Use Facet when:**
+- Starting work on a new subtask with a different tool surface
+- Context window is constrained (< 32k) and tool schemas are a meaningful fraction
+- You have 10+ MCP tools across multiple namespaces
+- You want explainable, reproducible tool routing decisions
+
+**Skip Facet when:**
+- The repo has fewer than ~5 tools (overhead not worth it)
+- All tools are needed for every task (no clustering benefit)
 
 ## Install
 
 ```bash
 npm install -g facet
-# or
 npx facet doctor
 ```
 
-## MCP integration (recommended)
+Zero-install:
+```bash
+npx facet demo
+npx facet plan "fix login validation bug" --manifest ./tools.json --budget 4000
+```
+
+## MCP setup (Cursor, Claude Code, Codex, Zed)
 
 ```json
 {
@@ -29,48 +43,206 @@ npx facet doctor
 }
 ```
 
-## MCP tools for agents
+Or: `facet cursor` prints the snippet. `claude mcp add facet -- npx -y facet mcp`
+
+## Recommended agent loop
+
+```
+At session start:
+1. Call facet_register_manifest(tools) — cache the full tool list once
+
+Before each subtask:
+2. Call facet_plan_surface with:
+   - task: verb + target (e.g. "fix stripe webhook signature validation")
+   - budget: 6000 (start here; increase for multi-domain tasks)
+
+3. Use ONLY the tools in selected[] for this subtask
+
+4. Task changes? Call facet_plan_surface again with the new task string.
+5. Re-plan when switching between domains (coding → docs → ops → etc.)
+```
+
+## MCP tools
 
 ### facet_plan_surface
 
 Select tools for the current task under a token budget.
 
-Parameters:
-- `task` (string, required): user goal or agent subtask
-- `tools` (array, required unless manifest registered): `{ name, description?, inputSchema? }[]`
-- `budget` (number, default 6000): max tool-schema tokens
-- `profile` (string, optional): `coding` | `review`
+Input schema:
+```json
+{
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "description": "What the agent is trying to accomplish. Use verb + target. Example: 'fix stripe webhook signature validation'"
+    },
+    "tools": {
+      "type": "array",
+      "description": "Tool definitions (omit if manifest already registered via facet_register_manifest)",
+      "items": { "type": "object" }
+    },
+    "budget": {
+      "type": "number",
+      "description": "Token budget for selected tools. Default: 6000.",
+      "default": 6000
+    },
+    "profile": {
+      "type": "string",
+      "description": "Named profile from facet.json (e.g. 'coding', 'review')"
+    }
+  },
+  "required": ["task"]
+}
+```
 
-Returns: `{ selected, deferred, tokensBefore, tokensAfter, savingsPercent, reasons }`
+Example response:
+```json
+{
+  "task": "fix the login validation bug",
+  "selected": [
+    {
+      "name": "mcp__filesystem__read_file",
+      "description": "Read the complete contents of a file...",
+      "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } }
+    },
+    {
+      "name": "mcp__git__diff",
+      "description": "Show changes between working tree and index...",
+      "inputSchema": { "type": "object", "properties": {} }
+    }
+  ],
+  "deferred": [ "...17 other tools..." ],
+  "tokensBefore": 8412,
+  "tokensAfter": 1240,
+  "savingsPercent": 85.3,
+  "reasons": {
+    "mcp__filesystem__read_file": "score=0.85 cluster=filesystem",
+    "mcp__git__diff": "score=0.54 cluster=git",
+    "mcp__notion__search": "deferred: budget (350 tok)"
+  }
+}
+```
 
 ### facet_audit_tools
 
 Audit token cost and capability clusters for a tool manifest.
 
-### facet_register_manifest
-
-Cache tools server-side to avoid resending large manifests.
-
-## CLI
-
-```bash
-facet plan "<task>" --manifest tools.json --budget 6000 --json
-facet audit tools.json
-facet init
-facet cursor   # print Cursor config snippet
-facet doctor
+Input schema:
+```json
+{
+  "type": "object",
+  "properties": {
+    "tools": {
+      "type": "array",
+      "description": "Tool definitions to audit",
+      "items": { "type": "object" }
+    }
+  },
+  "required": ["tools"]
+}
 ```
 
-## Library
+Example response:
+```json
+{
+  "totalTools": 22,
+  "totalTokens": 8412,
+  "entries": [
+    { "tool": { "name": "mcp__filesystem__read_file" }, "tokens": 320, "cluster": "filesystem" }
+  ],
+  "clusters": [
+    { "id": "filesystem", "label": "filesystem", "toolCount": 4, "tokens": 1180 },
+    { "id": "git", "label": "git", "toolCount": 3, "tokens": 680 }
+  ]
+}
+```
+
+### facet_register_manifest
+
+Cache the full tool list server-side so facet_plan_surface can be called cheaply without re-sending the manifest.
+
+Input schema:
+```json
+{
+  "type": "object",
+  "properties": {
+    "tools": {
+      "type": "array",
+      "description": "Full tool manifest to cache",
+      "items": { "type": "object" }
+    }
+  },
+  "required": ["tools"]
+}
+```
+
+## CLI reference
+
+```bash
+facet plan "<task>" [options]
+  --manifest <path>   Tool manifest JSON file
+  --budget <n>        Token budget (default: 6000)
+  --profile <name>    Named profile from facet.json
+  --json              JSON output
+
+facet audit <manifest>       # Audit token cost and clusters
+facet init                   # Write default facet.json
+facet demo                   # Run on built-in 22-tool manifest
+facet cursor                 # Print Cursor MCP config
+facet doctor                 # Environment self-check
+facet mcp                    # Start MCP server (stdio)
+```
+
+## Library API
 
 ```typescript
 import { routeTools, auditToolSurface } from "facet";
 
-const plan = routeTools("fix auth bug", tools, { budget: 6000 });
+const plan = routeTools("fix stripe webhook signature validation", tools, {
+  budget: 6000,
+  profile: { name: "coding", prefer: ["filesystem", "git"] }
+});
+
+// plan.selected      — tools to pass to your LLM for this task
+// plan.deferred      — tools held back
+// plan.tokensBefore  — total token cost before routing
+// plan.tokensAfter   — total token cost after routing
+// plan.savingsPercent — % reduction
+// plan.reasons       — per-tool routing decision
 ```
+
+## Budget guidance
+
+| Session type | Budget |
+|-------------|--------|
+| Focused bugfix | 3000–5000 |
+| Feature work (1–2 namespaces) | 5000–7000 |
+| Multi-domain work | 7000–10000 |
+| Review / read-only | 3000–4000 |
+
+## Task string format
+
+Best results with: **[verb] [target] [context]**
+
+Examples:
+- `"fix login validation bug in auth middleware"`
+- `"create a pull request for the bugfix branch"`
+- `"search notion for onboarding documentation"`
+- `"query datadog for error rate spike in payments service"`
+- `"run unit tests and check coverage"`
+
+## Algorithm summary
+
+1. **Cluster** — infer capability cluster from tool namespace/name/description (filesystem, git, web, data, etc.)
+2. **Score** — rank tools by token overlap between task words and tool names/descriptions
+3. **Distill** — compact JSON schemas (trim long descriptions, collapse unused optional properties)
+4. **Route** — greedy selection by score, stopping at budget; always respect pinned tools and floor count
 
 ## Docs
 
-- README.md — human overview
-- AGENTS.md — agent integration playbook
-- SPEC.md — routing algorithm
+- [SPEC.md](./SPEC.md) — routing algorithm details
+- [AGENTS.md](./AGENTS.md) — agent workflow and budget guidance
+- [SHOWCASE.md](./SHOWCASE.md) — terminal examples with real output
+- [docs/agent-api.json](./docs/agent-api.json) — JSON schemas with example responses
+- [integrations/](./integrations/) — Cursor, Claude Code, GitHub Action configs

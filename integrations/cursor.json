@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "facet": {
+      "command": "npx",
+      "args": ["-y", "facet", "mcp"]
+    }
+  }
+}

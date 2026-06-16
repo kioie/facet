@@ -1,0 +1,35 @@
+{
+  "name": "facet",
+  "version": "0.1.0",
+  "description": "Task-aware MCP tool surface router for coding agents. Routes a token-budgeted tool subset per subtask — 50–65% schema token savings.",
+  "homepage": "https://github.com/kioie/facet",
+  "license": "MIT",
+  "categories": ["developer-tools", "ai-agents", "token-optimization"],
+  "tags": ["mcp", "tool-routing", "context-window", "cursor", "claude-code", "token-savings"],
+  "install": {
+    "npm": {
+      "command": "npx",
+      "args": ["-y", "facet", "mcp"]
+    }
+  },
+  "tools": [
+    {
+      "name": "facet_plan_surface",
+      "description": "Select a task-specific subset of MCP tools under a token budget. Returns selected tools, deferred tools, and token savings percentage."
+    },
+    {
+      "name": "facet_audit_tools",
+      "description": "Audit token cost and capability clusters for a tool manifest."
+    },
+    {
+      "name": "facet_register_manifest",
+      "description": "Cache a full tool manifest server-side to avoid resending large arrays on every facet_plan_surface call."
+    }
+  ],
+  "links": {
+    "readme": "https://github.com/kioie/facet/blob/main/README.md",
+    "agents": "https://github.com/kioie/facet/blob/main/AGENTS.md",
+    "llms": "https://github.com/kioie/facet/blob/main/llms.txt",
+    "api-schema": "https://github.com/kioie/facet/blob/main/docs/agent-api.json"
+  }
+}

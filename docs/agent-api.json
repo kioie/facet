@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kioie/facet/blob/main/docs/agent-api.json",
+  "title": "Facet Agent API",
+  "description": "JSON schemas for Facet MCP tool inputs and outputs",
+  "definitions": {
+    "ToolDefinition": {
+      "type": "object",
+      "description": "A single MCP tool definition",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Unique tool name, e.g. mcp__github__create_pr"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of what the tool does"
+        },
+        "inputSchema": {
+          "type": "object",
+          "description": "JSON Schema for the tool's input parameters"
+        },
+        "namespace": {
+          "type": "string",
+          "description": "Tool namespace / MCP server name, e.g. github, filesystem"
+        }
+      },
+      "required": ["name"]
+    },
+    "ClusterSummary": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Cluster identifier, e.g. git, filesystem, notion" },
+        "label": { "type": "string" },
+        "toolCount": { "type": "number" },
+        "tokens": { "type": "number", "description": "Total token cost for tools in this cluster" }
+      },
+      "required": ["id", "label", "toolCount", "tokens"]
+    }
+  },
+  "tools": {
+    "facet_plan_surface": {
+      "description": "Select a task-specific subset of tools under a token budget",
+      "input": {
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "The current agent goal or subtask description. More specific = better routing.",
+            "examples": [
+              "fix the login validation bug in auth middleware",
+              "search notion for onboarding documentation",
+              "create a pull request for the bugfix branch"
+            ]
+          },
+          "tools": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/ToolDefinition" },
+            "description": "Full tool manifest. Required unless manifestId is provided."
+          },
+          "manifestId": {
+            "type": "string",
+            "description": "ID returned by facet_register_manifest. Use this to avoid resending the full manifest."
+          },
+          "budget": {
+            "type": "number",
+            "default": 6000,
+            "description": "Maximum token budget for the returned tool surface. Recommended: 4000–8000."
+          },
+          "profile": {
+            "type": "string",
+            "enum": ["coding", "review"],
+            "description": "Named profile from facet.json. Applies pin/block/prefer constraints."
+          }
+        },
+        "required": [],
+        "anyOf": [
+          { "required": ["task", "tools"] },
+          { "required": ["task", "manifestId"] }
+        ]
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "task": { "type": "string" },
+          "budget": { "type": "number" },
+          "selected": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/ToolDefinition" },
+            "description": "Tools to use for this subtask — these fit within the token budget and are relevant to the task"
+          },
+          "deferred": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/ToolDefinition" },
+            "description": "Tools not surfaced this turn — re-plan when the task shifts to access them"
+          },
+          "tokensBefore": {
+            "type": "number",
+            "description": "Total tokens if all tools were sent (baseline)"
+          },
+          "tokensAfter": {
+            "type": "number",
+            "description": "Actual tokens consumed by the selected surface"
+          },
+          "savingsPercent": {
+            "type": "number",
+            "description": "Percentage of tokens saved: (before - after) / before * 100"
+          },
+          "reasons": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Per-tool reason string explaining why it was selected or deferred"
+          }
+        },
+        "required": ["selected", "deferred", "tokensBefore", "tokensAfter", "savingsPercent", "reasons"]
+      }
+    },
+    "facet_audit_tools": {
+      "description": "Audit token cost and capability clusters for a tool manifest",
+      "input": {
+        "type": "object",
+        "properties": {
+          "tools": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/ToolDefinition" }
+          },
+          "manifestId": { "type": "string" }
+        }
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "totalTools": { "type": "number" },
+          "totalTokens": { "type": "number" },
+          "clusters": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/ClusterSummary" }
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tool": { "$ref": "#/definitions/ToolDefinition" },
+                "tokens": { "type": "number" },
+                "cluster": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "facet_register_manifest": {
+      "description": "Cache a full tool manifest server-side for the session",
+      "input": {
+        "type": "object",
+        "properties": {
+          "tools": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/ToolDefinition" },
+            "description": "Full tool manifest to cache"
+          },
+          "id": {
+            "type": "string",
+            "description": "Optional custom manifest ID. Auto-generated if omitted."
+          }
+        },
+        "required": ["tools"]
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "manifestId": { "type": "string" },
+          "totalTools": { "type": "number" },
+          "totalTokens": { "type": "number" }
+        }
+      }
+    }
+  }
+}

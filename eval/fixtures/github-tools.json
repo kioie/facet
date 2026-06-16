@@ -1,0 +1,18 @@
+{
+  "tools": [
+    { "name": "mcp__filesystem__read", "description": "Read file from workspace", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__filesystem__write", "description": "Write file to workspace", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__git__diff", "description": "Show git diff for paths", "namespace": "git", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__git__status", "description": "Show git working tree status", "namespace": "git", "inputSchema": { "type": "object", "properties": {} } },
+    { "name": "mcp__github__create_pull_request", "description": "Create GitHub pull request", "namespace": "github", "inputSchema": { "type": "object", "properties": { "title": { "type": "string" }, "head": { "type": "string" } } } },
+    { "name": "mcp__github__list_issues", "description": "List GitHub repository issues", "namespace": "github", "inputSchema": { "type": "object", "properties": { "state": { "type": "string" } } } },
+    { "name": "mcp__github__get_pull_request", "description": "Get GitHub pull request details", "namespace": "github", "inputSchema": { "type": "object", "properties": { "number": { "type": "number" } } } },
+    { "name": "mcp__slack__post_message", "description": "Post message to Slack channel", "namespace": "slack", "inputSchema": { "type": "object", "properties": { "channel": { "type": "string" } } } },
+    { "name": "mcp__shell__run", "description": "Execute shell command", "namespace": "runtime", "inputSchema": { "type": "object", "properties": { "command": { "type": "string" } } } }
+  ],
+  "cases": [
+    { "task": "list open issues on the payments repo", "expectIncludes": ["mcp__github__list_issues"], "expectExcludes": ["mcp__slack__post_message"] },
+    { "task": "review pull request diff for security issues", "expectIncludes": ["mcp__github__get_pull_request", "mcp__git__diff"], "expectExcludes": ["mcp__slack__post_message"] },
+    { "task": "post deployment update to slack channel", "expectIncludes": ["mcp__slack__post_message"], "expectExcludes": ["mcp__github__list_issues"] }
+  ]
+}

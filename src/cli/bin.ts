@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { readFileSync, writeFileSync } from "node:fs";
-import { auditToolSurface, defaultConfig, routeTools } from "../index.js";
+import { auditToolSurface, defaultConfig, loadConfig, routeTools, resolveProfile } from "../index.js";
+import { startFacetMcpServer } from "../mcp/server.js";
 import type { ToolDefinition } from "../core/types.js";
 
 const program = new Command();
@@ -9,16 +10,17 @@ const program = new Command();
 program
   .name("facet")
   .description("Task-aware MCP tool surface for coding agents")
-  .version("0.1.0");
+  .version("0.1.1");
 
 program
   .command("audit")
   .description("Measure token cost of a tool manifest JSON file")
   .argument("<manifest>", "Path to JSON array of tools")
-  .action((manifest: string) => {
+  .option("--json", "Compact JSON output")
+  .action((manifest: string, opts: { json?: boolean }) => {
     const tools = loadTools(manifest);
     const report = auditToolSurface(tools);
-    console.log(JSON.stringify(report, null, 2));
+    console.log(JSON.stringify(report, null, opts.json ? undefined : 2));
   });
 
 program
@@ -31,12 +33,15 @@ program
   .option("--json", "JSON output")
   .action((task: string, opts: { manifest?: string; budget: string; profile?: string; json?: boolean }) => {
     const tools = opts.manifest ? loadTools(opts.manifest) : demoTools();
-    const config = defaultConfig();
-    const profile = opts.profile
-      ? config.profiles.find((p: { name: string }) => p.name === opts.profile)
-      : undefined;
+    const config = loadConfig();
+    const profile = opts.profile ? resolveProfile(config, opts.profile) : undefined;
+    if (opts.profile && !profile) {
+      console.error(`Unknown profile "${opts.profile}". Run facet init or add it to facet.json.`);
+      process.exit(1);
+    }
+    const budget = profile?.budget ?? Number(opts.budget);
     const plan = routeTools(task, tools, {
-      budget: Number(opts.budget),
+      budget,
       profile,
     });
     if (opts.json) {
@@ -90,7 +95,6 @@ program
   .command("mcp")
   .description("Run Facet MCP server (stdio)")
   .action(async () => {
-    const { startFacetMcpServer } = await import("../mcp/server.js");
     await startFacetMcpServer();
   });
 

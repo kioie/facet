@@ -29,14 +29,12 @@ Task: "fix the login validation bug in auth middleware"
     + 4 more
 
 Task: "search notion for onboarding documentation"
-  3,210 tok → 1,385 tok  (57% saved)  12 selected / 0 deferred / 11 filtered
+  3,210 tok → 605 tok  (81% saved)  5 selected / 0 deferred / 18 filtered
     ✓ mcp__notion__search
-    ✓ mcp__filesystem__grep
     ✓ mcp__notion__get_page
-    ✓ mcp__filesystem__search_files
     ✓ mcp__notion__create_page
-    ✓ mcp__shell__run
-    + 6 more
+    ✓ mcp__filesystem__grep
+    ✓ mcp__filesystem__search_files
 
 Task: "create a pull request for the bugfix branch"
   3,210 tok → 2,122 tok  (34% saved)  16 selected / 0 deferred / 7 filtered

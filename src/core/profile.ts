@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { z } from "zod";
 import type { FacetProfile } from "./types.js";
 
@@ -49,4 +51,15 @@ export function resolveProfile(
 ): FacetProfile | undefined {
   if (!name) return undefined;
   return config.profiles.find((p) => p.name === name);
+}
+
+/** Read facet.json from cwd (or path); fall back to built-in defaults. */
+export function loadConfig(configPath?: string): FacetConfig {
+  const path = configPath ?? join(process.cwd(), "facet.json");
+  try {
+    const raw = JSON.parse(readFileSync(path, "utf8")) as unknown;
+    return parseConfig(raw);
+  } catch {
+    return defaultConfig();
+  }
 }

@@ -17,4 +17,12 @@
 
 **Score:** 4/4 (100%)
 
-Aggregate: 7/7
+# Eval: github-tools.json
+
+- [x] `list open issues on the payments repo` → mcp__github__list_issues, mcp__filesystem__read, mcp__filesystem__write, mcp__git__diff
+- [x] `review pull request diff for security issues` → mcp__github__create_pull_request, mcp__github__get_pull_request, mcp__git__diff, mcp__github__list_issues
+- [x] `post deployment update to slack channel` → mcp__slack__post_message
+
+**Score:** 3/3 (100%)
+
+Aggregate: 10/10

@@ -1,17 +1,30 @@
 {
-  "name": "@kioie/facet",
-  "version": "0.1.0",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.kioie/facet",
+  "title": "Facet",
   "description": "Task-aware MCP tool surface router for coding agents. Routes a token-budgeted tool subset per subtask.",
+  "version": "0.1.1",
   "homepage": "https://github.com/kioie/facet",
   "license": "MIT",
   "categories": ["developer-tools", "ai-agents", "mcp"],
   "tags": ["mcp", "tool-routing", "context-window", "cursor", "claude-code", "coding-agent"],
-  "install": {
-    "npm": {
-      "command": "npx",
-      "args": ["-y", "@kioie/facet", "mcp"]
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@kioie/facet",
+      "version": "0.1.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "mcp",
+          "description": "Run Facet MCP server"
+        }
+      ]
     }
-  },
+  ],
   "tools": [
     {
       "name": "facet_plan_surface",

@@ -222,7 +222,7 @@ const audit = auditToolSurface(tools);
 - [AGENTS.md](./AGENTS.md) — full integration playbook with budget guidance
 - [docs/agent-api.json](./docs/agent-api.json) — JSON schemas with example responses
 - [docs/mcp-registry.md](./docs/mcp-registry.md) — MCP Registry publish and validation
-- [docs/mcp-registry.md](./docs/mcp-registry.md) — publish Facet to the MCP Registry
+- [integrations/](./integrations/) — Cursor, Claude Code, and GitHub Action configs
 
 ## Contributing
 

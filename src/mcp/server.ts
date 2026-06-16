@@ -162,6 +162,9 @@ export async function startFacetMcpServer(): Promise<void> {
           payload.budget !== undefined
             ? Number(payload.budget)
             : profile?.budget ?? config.defaultBudget;
+        if (!Number.isFinite(budget) || budget <= 0) {
+          throw new Error("facet_plan_surface budget must be a positive number.");
+        }
 
         const plan = routeTools(task, tools, { budget, profile });
         return textResult(plan);

@@ -2,6 +2,7 @@
 import { execSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { Command } from "commander";
+import { resolvePathWithinCwd } from "../core/paths.js";
 import { auditToolSurface, defaultConfig, loadConfig, routeTools, resolveProfile } from "../index.js";
 import { startFacetMcpServer } from "../mcp/server.js";
 import type { ToolDefinition } from "../core/types.js";
@@ -128,10 +129,11 @@ program
       .description("Validate server.json against the MCP Registry schema")
       .argument("[path]", "Path to server.json", "server.json")
       .action((path: string) => {
+        const safePath = resolvePathWithinCwd(path);
         try {
-          execSync(`mcp-publisher validate ${JSON.stringify(path)}`, { stdio: "inherit" });
+          execSync(`mcp-publisher validate ${JSON.stringify(safePath)}`, { stdio: "inherit" });
         } catch {
-          const raw = readFileSync(path, "utf8");
+          const raw = readFileSync(safePath, "utf8");
           JSON.parse(raw);
           console.log(`✓ ${path} is valid JSON (install mcp-publisher for schema validation)`);
         }
@@ -142,7 +144,8 @@ program
       .description("Publish server.json to the MCP Registry (requires mcp-publisher login)")
       .argument("[path]", "Path to server.json", "server.json")
       .action((path: string) => {
-        const result = spawnSync("mcp-publisher", ["publish", path], { stdio: "inherit" });
+        const safePath = resolvePathWithinCwd(path);
+        const result = spawnSync("mcp-publisher", ["publish", safePath], { stdio: "inherit" });
         process.exit(result.status ?? 1);
       }),
   );
@@ -222,7 +225,8 @@ function formatAuditReport(report: ReturnType<typeof auditToolSurface>): string 
 }
 
 function loadTools(path: string): ToolDefinition[] {
-  const raw = JSON.parse(readFileSync(path, "utf8")) as unknown;
+  const safePath = resolvePathWithinCwd(path);
+  const raw = JSON.parse(readFileSync(safePath, "utf8")) as unknown;
   if (!Array.isArray(raw)) throw new Error("Manifest must be a JSON array");
   return raw as ToolDefinition[];
 }

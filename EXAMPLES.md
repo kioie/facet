@@ -171,4 +171,4 @@ Paste into `~/.cursor/mcp.json`:
 npm run eval
 ```
 
-Current aggregate score: **6/6** across agent-tools and mcp-heavy fixtures. See [eval/results.md](./eval/results.md).
+Current aggregate score: **7/7** across agent-tools and mcp-heavy fixtures. See [eval/results.md](./eval/results.md).

@@ -11,9 +11,10 @@
 # Eval: mcp-heavy.json
 
 - [x] `create a pull request for the bugfix branch` → mcp__github__create_pr, mcp__filesystem__read, mcp__filesystem__write, mcp__notion__search
-- [x] `search notion docs for onboarding` → mcp__notion__search, mcp__filesystem__read, mcp__filesystem__write, mcp__github__create_pr
+- [x] `search notion docs for onboarding` → mcp__notion__search
 - [x] `read config yaml from repo` → mcp__filesystem__read, mcp__filesystem__write, mcp__github__create_pr, mcp__notion__search
+- [x] `query datadog for error rate spike in payments` → mcp__datadog__query_metrics, mcp__postgres__query
 
-**Score:** 3/3 (100%)
+**Score:** 4/4 (100%)
 
-Aggregate: 6/6
+Aggregate: 7/7

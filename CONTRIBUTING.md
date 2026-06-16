@@ -32,7 +32,7 @@ git clone https://github.com/kioie/facet
 cd facet
 npm install
 npm test          # unit tests
-npm run eval      # evaluation suite (6/6 cases)
+npm run eval      # evaluation suite (7/7 cases)
 npm run build     # TypeScript compile
 ```
 
@@ -77,7 +77,7 @@ eval/
 ## Submitting a PR
 
 - `npm test` must pass
-- `npm run eval` must pass (score >= current 6/6)
+- `npm run eval` must pass (score >= current 7/7)
 - Keep PRs focused — one feature or fix per PR
 - No AI-generated comments explaining what the code does
 

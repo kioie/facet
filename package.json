@@ -31,6 +31,7 @@
   },
   "files": [
     "dist",
+    "LICENSE",
     "llms.txt",
     "AGENTS.md",
     "CLAUDE.md",

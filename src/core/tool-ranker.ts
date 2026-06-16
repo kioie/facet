@@ -30,7 +30,7 @@ export function inferCluster(tool: ToolDefinition): string {
   if (/git|commit|branch|pr|github/.test(name)) return "git";
   if (/read|write|file|fs|glob|search/.test(name)) return "filesystem";
   if (/browser|web|fetch|http|url/.test(name)) return "web";
-  if (/db|sql|query|database/.test(name)) return "data";
+  if (/datadog|sentry|metrics|observability/.test(name) || tool.namespace === "datadog") return "observability";
   if (/test|lint|build|run|exec|shell|bash/.test(name)) return "runtime";
   return "general";
 }
@@ -45,7 +45,22 @@ export function scoreTool(task: string, tool: ToolDefinition): number {
     else if ([...docTokens].some((d) => d.includes(t) || t.includes(d))) hits += 0.5;
   }
   const idfBoost = tool.name.length < 24 ? 0.05 : 0;
-  return hits / taskTokens.length + idfBoost;
+  let score = hits / taskTokens.length + idfBoost;
+  const taskLower = task.toLowerCase();
+  const ns = tool.namespace?.toLowerCase();
+  if (ns && taskLower.includes(ns)) score += 0.5;
+  else if (taskLower.includes("datadog") && /datadog|metrics/.test(tool.name.toLowerCase())) score += 0.5;
+
+  const serviceMatch = taskLower.match(/\b(datadog|notion|slack|github|stripe|linear|figma|sentry)\b/);
+  if (serviceMatch) {
+    const service = serviceMatch[1]!;
+    const toolNs = ns ?? tool.name.toLowerCase().split("__")[1];
+    if (toolNs && toolNs !== service && !tool.name.toLowerCase().includes(service)) {
+      score *= 0.2;
+    }
+  }
+
+  return score;
 }
 
 export function rankTools(

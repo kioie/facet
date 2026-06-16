@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@kioie/facet?color=orange)](https://www.npmjs.com/package/@kioie/facet)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![eval](https://img.shields.io/badge/eval-6%2F6-brightgreen)](#evaluation)
+[![eval](https://img.shields.io/badge/eval-7%2F7-brightgreen)](#evaluation)
 [![MCP](https://img.shields.io/badge/MCP-native-purple)](docs/cursor.md)
 
 ---
@@ -153,7 +153,7 @@ See [SPEC.md](./SPEC.md) for the full algorithm.
 npm run eval
 ```
 
-Current score: **6/6** across agent-tools and MCP-heavy fixtures.
+Current score: **7/7** across agent-tools and MCP-heavy fixtures.
 
 ```
 ✓ read the login validation source file   → filesystem tools selected

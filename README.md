@@ -2,7 +2,7 @@
 
 **Task-aware MCP tool surface for coding agents.**
 
-[![npm](https://img.shields.io/npm/v/facet?color=orange)](https://www.npmjs.com/package/facet)
+[![npm](https://img.shields.io/npm/v/@kioie/facet?color=orange)](https://www.npmjs.com/package/@kioie/facet)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![eval](https://img.shields.io/badge/eval-6%2F6-brightgreen)](#evaluation)
 [![MCP](https://img.shields.io/badge/MCP-native-purple)](docs/cursor.md)
@@ -31,41 +31,43 @@ mcp__github__create_pull_request  (520 tok)
 mcp__slack__post_message          (290 tok)
 mcp__stripe__create_payment_intent (480 tok)
 mcp__datadog__query_metrics       (360 tok)
-...10 more tools...
-Total: ~8,400 tokens consumed per session
+...13 more tools...
+Total: 3,210 tokens — before your agent reads a single line of code
 ```
 
 **After Facet** — task-targeted surface in one call:
 ```
-facet plan "fix the login validation bug" --budget 4000
+npx @kioie/facet demo
 
-Task: fix the login validation bug
-Tools: 5/22  |  8,400 tok → 1,240 tok  (85% saved)
+Task: fix the login validation bug in auth middleware
+Tools: 10/23  |  3,210 tok → 1,160 tok  (64% saved)
 
-  ✓ mcp__filesystem__read_file   score=0.85  cluster=filesystem
-  ✓ mcp__filesystem__grep        score=0.72  cluster=filesystem
-  ✓ mcp__shell__run              score=0.61  cluster=runtime
-  ✓ mcp__git__diff               score=0.54  cluster=git
-  ✓ mcp__git__status             score=0.48  cluster=git
+  ✓ mcp__git__log
+  ✓ mcp__filesystem__grep
+  ✓ mcp__shell__run
+  ✓ mcp__git__status
+  ✓ mcp__git__diff
+  ✓ mcp__browser__navigate
+  + 4 more
 
-  · deferred: mcp__notion__search, mcp__slack__post_message, mcp__stripe__*, ...
+  · deferred: mcp__notion__*, mcp__slack__*, mcp__stripe__*, ...
 ```
 
-**Result: 1,240 tokens instead of 8,400. Same task. Less noise.**
+**Result: 1,160 tokens instead of 3,210. Same task. Less noise.**
 
 ---
 
 ## Install
 
 ```bash
-npm install -g facet
+npm install -g @kioie/facet
 facet doctor
 ```
 
 Or zero-install with npx:
 
 ```bash
-npx facet demo
+npx @kioie/facet demo
 ```
 
 ## Quick start
@@ -94,7 +96,7 @@ facet cursor
 
 **Claude Code:**
 ```bash
-claude mcp add facet -- npx -y facet mcp
+claude mcp add facet -- npx -y @kioie/facet mcp
 ```
 
 **Any MCP client (Cursor, Claude Code, Codex, Zed...):**
@@ -103,7 +105,7 @@ claude mcp add facet -- npx -y facet mcp
   "mcpServers": {
     "facet": {
       "command": "npx",
-      "args": ["-y", "facet", "mcp"]
+      "args": ["-y", "@kioie/facet", "mcp"]
     }
   }
 }
@@ -175,7 +177,7 @@ Runs Facet on a built-in 22-tool manifest (filesystem, git, GitHub, Notion, Slac
 ## Library API
 
 ```typescript
-import { routeTools, auditToolSurface } from "facet";
+import { routeTools, auditToolSurface } from "@kioie/facet";
 
 const plan = routeTools("fix stripe webhook validation", tools, { budget: 6000 });
 // plan.selected      — tools to pass to your LLM for this task
@@ -216,12 +218,13 @@ const audit = auditToolSurface(tools);
 ## For AI agents
 
 - [llms.txt](./llms.txt) — machine-readable tool docs and agent loop
+- [EXAMPLES.md](./EXAMPLES.md) — demo output and usage patterns
 - [AGENTS.md](./AGENTS.md) — full integration playbook with budget guidance
 - [docs/agent-api.json](./docs/agent-api.json) — JSON schemas with example responses
 - [integrations/](./integrations/) — Cursor, Claude Code, and GitHub Action configs
 
 ## Contributing
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md). Stars help more devs find Facet — if it saves you tokens, give it one.
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 MIT License.

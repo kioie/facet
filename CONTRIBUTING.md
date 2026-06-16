@@ -2,8 +2,6 @@
 
 Thanks for your interest! Facet is a small, focused tool — contributions that keep it sharp and accurate are most welcome.
 
-**If Facet saves you tokens, the fastest way to help is a GitHub star.** It helps more agent developers discover the project.
-
 ---
 
 ## What we're looking for

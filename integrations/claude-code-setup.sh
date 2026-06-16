@@ -5,7 +5,7 @@
 set -e
 
 echo "Adding Facet to Claude Code..."
-claude mcp add facet -- npx -y facet mcp
+claude mcp add facet -- npx -y @kioie/facet mcp
 
 echo ""
 echo "Done! Facet is now available as an MCP server in Claude Code."

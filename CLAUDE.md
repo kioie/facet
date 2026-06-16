@@ -11,7 +11,7 @@ Facet reduces tool-schema token overhead by routing a task-specific subset of MC
 ## Setup
 
 ```bash
-claude mcp add facet -- npx -y facet mcp
+claude mcp add facet -- npx -y @kioie/facet mcp
 ```
 
 ## How to use Facet

@@ -20,14 +20,14 @@ Facet solves MCP tool-schema bloat: agents typically load every MCP tool at sess
 ## Install
 
 ```bash
-npm install -g facet
-npx facet doctor
+npm install -g @kioie/facet
+npx @kioie/facet doctor
 ```
 
 Zero-install:
 ```bash
-npx facet demo
-npx facet plan "fix login validation bug" --manifest ./tools.json --budget 4000
+npx @kioie/facet demo
+npx @kioie/facet plan "fix login validation bug" --manifest ./tools.json --budget 4000
 ```
 
 ## MCP setup (Cursor, Claude Code, Codex, Zed)
@@ -37,13 +37,13 @@ npx facet plan "fix login validation bug" --manifest ./tools.json --budget 4000
   "mcpServers": {
     "facet": {
       "command": "npx",
-      "args": ["-y", "facet", "mcp"]
+      "args": ["-y", "@kioie/facet", "mcp"]
     }
   }
 }
 ```
 
-Or: `facet cursor` prints the snippet. `claude mcp add facet -- npx -y facet mcp`
+Or: `facet cursor` prints the snippet. `claude mcp add facet -- npx -y @kioie/facet mcp`
 
 ## Recommended agent loop
 
@@ -197,7 +197,7 @@ facet mcp                    # Start MCP server (stdio)
 ## Library API
 
 ```typescript
-import { routeTools, auditToolSurface } from "facet";
+import { routeTools, auditToolSurface } from "@kioie/facet";
 
 const plan = routeTools("fix stripe webhook signature validation", tools, {
   budget: 6000,
@@ -243,6 +243,6 @@ Examples:
 
 - [SPEC.md](./SPEC.md) — routing algorithm details
 - [AGENTS.md](./AGENTS.md) — agent workflow and budget guidance
-- [SHOWCASE.md](./SHOWCASE.md) — terminal examples with real output
+- [EXAMPLES.md](./EXAMPLES.md) — terminal examples with demo output
 - [docs/agent-api.json](./docs/agent-api.json) — JSON schemas with example responses
 - [integrations/](./integrations/) — Cursor, Claude Code, GitHub Action configs

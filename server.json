@@ -1,15 +1,15 @@
 {
-  "name": "facet",
+  "name": "@kioie/facet",
   "version": "0.1.0",
-  "description": "Task-aware MCP tool surface router for coding agents. Routes a token-budgeted tool subset per subtask — 50–65% schema token savings.",
+  "description": "Task-aware MCP tool surface router for coding agents. Routes a token-budgeted tool subset per subtask.",
   "homepage": "https://github.com/kioie/facet",
   "license": "MIT",
-  "categories": ["developer-tools", "ai-agents", "token-optimization"],
-  "tags": ["mcp", "tool-routing", "context-window", "cursor", "claude-code", "token-savings"],
+  "categories": ["developer-tools", "ai-agents", "mcp"],
+  "tags": ["mcp", "tool-routing", "context-window", "cursor", "claude-code", "coding-agent"],
   "install": {
     "npm": {
       "command": "npx",
-      "args": ["-y", "facet", "mcp"]
+      "args": ["-y", "@kioie/facet", "mcp"]
     }
   },
   "tools": [
@@ -27,9 +27,9 @@
     }
   ],
   "links": {
-    "readme": "https://github.com/kioie/facet/blob/main/README.md",
-    "agents": "https://github.com/kioie/facet/blob/main/AGENTS.md",
-    "llms": "https://github.com/kioie/facet/blob/main/llms.txt",
-    "api-schema": "https://github.com/kioie/facet/blob/main/docs/agent-api.json"
+    "readme": "https://github.com/kioie/facet/blob/master/README.md",
+    "agents": "https://github.com/kioie/facet/blob/master/AGENTS.md",
+    "llms": "https://github.com/kioie/facet/blob/master/llms.txt",
+    "api-schema": "https://github.com/kioie/facet/blob/master/docs/agent-api.json"
   }
 }

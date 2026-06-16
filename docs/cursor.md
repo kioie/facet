@@ -10,7 +10,7 @@
   "mcpServers": {
     "facet": {
       "command": "npx",
-      "args": ["-y", "facet", "mcp"]
+      "args": ["-y", "@kioie/facet", "mcp"]
     }
   }
 }

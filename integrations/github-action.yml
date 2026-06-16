@@ -35,7 +35,7 @@ jobs:
         id: surface
         run: |
           # Run facet plan with your manifest file (update path as needed)
-          RESULT=$(npx -y facet plan "${{ steps.pr.outputs.task }}" \
+          RESULT=$(npx -y @kioie/facet plan "${{ steps.pr.outputs.task }}" \
             --manifest ./tools.json \
             --budget 6000 \
             --json)

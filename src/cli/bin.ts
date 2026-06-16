@@ -102,7 +102,7 @@ program
       mcpServers: {
         facet: {
           command: "npx",
-          args: ["-y", "facet", "mcp"],
+          args: ["-y", "@kioie/facet", "mcp"],
         },
       },
     };
@@ -137,12 +137,14 @@ program
 
     for (const task of tasks) {
       const plan = routeTools(task, tools, { budget: 4000 });
+      const filtered = tools.length - plan.selected.length - plan.deferred.length;
       const arrow = "→";
       console.log(`Task: "${task}"`);
       console.log(
         `  ${plan.tokensBefore.toLocaleString()} tok ${arrow} ${plan.tokensAfter.toLocaleString()} tok  ` +
           `(${plan.savingsPercent.toFixed(0)}% saved)  ` +
-          `${plan.selected.length} selected / ${plan.deferred.length} deferred`,
+          `${plan.selected.length} selected / ${plan.deferred.length} deferred` +
+          (filtered > 0 ? ` / ${filtered} filtered` : ""),
       );
       for (const t of plan.selected.slice(0, 6)) {
         console.log(`    ✓ ${t.name}`);
@@ -163,8 +165,8 @@ program
 
     console.log(`${line}`);
     console.log(`Add to Cursor / Claude Code in one command:`);
-    console.log(`  npx facet cursor  →  paste snippet into MCP settings`);
-    console.log(`  claude mcp add facet -- npx -y facet mcp\n`);
+    console.log(`  npx @kioie/facet cursor  →  paste snippet into MCP settings`);
+    console.log(`  claude mcp add facet -- npx -y @kioie/facet mcp\n`);
   });
 
 program.parse();

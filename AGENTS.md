@@ -32,7 +32,7 @@ Run `facet cursor` and merge the JSON into Cursor MCP settings, or add manually:
   "mcpServers": {
     "facet": {
       "command": "npx",
-      "args": ["-y", "facet", "mcp"]
+      "args": ["-y", "@kioie/facet", "mcp"]
     }
   }
 }
@@ -41,7 +41,7 @@ Run `facet cursor` and merge the JSON into Cursor MCP settings, or add manually:
 ### Claude Code
 
 ```bash
-claude mcp add facet -- npx -y facet mcp
+claude mcp add facet -- npx -y @kioie/facet mcp
 ```
 
 ### Any MCP client
@@ -51,7 +51,7 @@ claude mcp add facet -- npx -y facet mcp
   "mcpServers": {
     "facet": {
       "command": "npx",
-      "args": ["-y", "facet", "mcp"]
+      "args": ["-y", "@kioie/facet", "mcp"]
     }
   }
 }

@@ -3,12 +3,12 @@
 ## Install
 
 ```bash
-claude mcp add facet -- npx -y facet mcp
+claude mcp add facet -- npx -y @kioie/facet mcp
 ```
 
 Or globally:
 ```bash
-npm install -g facet
+npm install -g @kioie/facet
 claude mcp add facet -- facet mcp
 ```
 
@@ -48,5 +48,5 @@ Budget guide: bugfix=3000-5000, feature=5000-7000, multi-domain=7000-10000
 ## Zero-install for one-off use
 
 ```bash
-npx facet plan "fix login validation" --manifest ./tools.json --budget 4000
+npx @kioie/facet plan "fix login validation" --manifest ./tools.json --budget 4000
 ```

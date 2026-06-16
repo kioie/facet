@@ -269,7 +269,7 @@
   ],
   "mcpConfig": {
     "command": "npx",
-    "args": ["-y", "facet", "mcp"]
+    "args": ["-y", "@kioie/facet", "mcp"]
   },
   "agentWorkflow": {
     "steps": [

@@ -18,7 +18,7 @@ if [ ! -f "$MANIFEST" ]; then
 fi
 
 if ! command -v facet &>/dev/null; then
-  echo "facet not found — skipping token audit (install with: npm install -g facet)"
+  echo "facet not found — skipping token audit (install with: npm install -g @kioie/facet)"
   exit 0
 fi
 

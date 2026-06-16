@@ -227,4 +227,4 @@ const audit = auditToolSurface(tools);
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-MIT License.
+MIT License — see [LICENSE](./LICENSE).

@@ -1,0 +1,76 @@
+# Facet — llms.txt
+
+> Task-aware MCP tool surface for coding agents. npm package `facet`, CLI `facet`, MCP command `facet mcp`.
+
+## When to use
+
+- MCP tool schemas consume large portions of the context window before any user message
+- Agents have 20+ tools across multiple MCP servers enabled
+- You want task-specific tool subsets with measurable token savings
+
+## Install
+
+```bash
+npm install -g facet
+# or
+npx facet doctor
+```
+
+## MCP integration (recommended)
+
+```json
+{
+  "mcpServers": {
+    "facet": {
+      "command": "npx",
+      "args": ["-y", "facet", "mcp"]
+    }
+  }
+}
+```
+
+## MCP tools for agents
+
+### facet_plan_surface
+
+Select tools for the current task under a token budget.
+
+Parameters:
+- `task` (string, required): user goal or agent subtask
+- `tools` (array, required unless manifest registered): `{ name, description?, inputSchema? }[]`
+- `budget` (number, default 6000): max tool-schema tokens
+- `profile` (string, optional): `coding` | `review`
+
+Returns: `{ selected, deferred, tokensBefore, tokensAfter, savingsPercent, reasons }`
+
+### facet_audit_tools
+
+Audit token cost and capability clusters for a tool manifest.
+
+### facet_register_manifest
+
+Cache tools server-side to avoid resending large manifests.
+
+## CLI
+
+```bash
+facet plan "<task>" --manifest tools.json --budget 6000 --json
+facet audit tools.json
+facet init
+facet cursor   # print Cursor config snippet
+facet doctor
+```
+
+## Library
+
+```typescript
+import { routeTools, auditToolSurface } from "facet";
+
+const plan = routeTools("fix auth bug", tools, { budget: 6000 });
+```
+
+## Docs
+
+- README.md — human overview
+- AGENTS.md — agent integration playbook
+- SPEC.md — routing algorithm

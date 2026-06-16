@@ -1,0 +1,17 @@
+{
+  "tools": [
+    { "name": "mcp__filesystem__read", "description": "Read file", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__filesystem__write", "description": "Write file", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__github__create_pr", "description": "Create pull request", "namespace": "github", "inputSchema": { "type": "object", "properties": { "title": { "type": "string" } } } },
+    { "name": "mcp__github__list_issues", "description": "List GitHub issues", "namespace": "github", "inputSchema": { "type": "object", "properties": { "state": { "type": "string" } } } },
+    { "name": "mcp__slack__post_message", "description": "Post Slack message", "namespace": "slack", "inputSchema": { "type": "object", "properties": { "channel": { "type": "string" } } } },
+    { "name": "mcp__notion__search", "description": "Search Notion", "namespace": "notion", "inputSchema": { "type": "object", "properties": { "query": { "type": "string" } } } },
+    { "name": "mcp__postgres__query", "description": "SQL query", "namespace": "data", "inputSchema": { "type": "object", "properties": { "sql": { "type": "string" } } } },
+    { "name": "mcp__browser__screenshot", "description": "Browser screenshot", "namespace": "web", "inputSchema": { "type": "object", "properties": { "url": { "type": "string" } } } }
+  ],
+  "cases": [
+    { "task": "create a pull request for the bugfix branch", "expectIncludes": ["mcp__github__create_pr"], "expectExcludes": ["mcp__browser__screenshot"] },
+    { "task": "search notion docs for onboarding", "expectIncludes": ["mcp__notion__search"], "expectExcludes": ["mcp__postgres__query"] },
+    { "task": "read config yaml from repo", "expectIncludes": ["mcp__filesystem__read"], "expectExcludes": ["mcp__slack__post_message"] }
+  ]
+}

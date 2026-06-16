@@ -1,0 +1,17 @@
+{
+  "tools": [
+    { "name": "Read", "description": "Read a file", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "Write", "description": "Write a file", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" }, "content": { "type": "string" } } } },
+    { "name": "Glob", "description": "Find files by pattern", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "pattern": { "type": "string" } } } },
+    { "name": "Grep", "description": "Search code", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "pattern": { "type": "string" } } } },
+    { "name": "Shell", "description": "Run shell command", "namespace": "runtime", "inputSchema": { "type": "object", "properties": { "command": { "type": "string" } } } },
+    { "name": "GitStatus", "description": "Git status", "namespace": "git", "inputSchema": { "type": "object", "properties": {} } },
+    { "name": "GitDiff", "description": "Git diff", "namespace": "git", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "BrowserOpen", "description": "Open URL", "namespace": "web", "inputSchema": { "type": "object", "properties": { "url": { "type": "string" } } } }
+  ],
+  "cases": [
+    { "task": "read the login validation source file", "expectIncludes": ["Read", "Glob"], "expectExcludes": ["BrowserOpen"] },
+    { "task": "show git diff for auth module", "expectIncludes": ["GitDiff"], "expectExcludes": ["BrowserOpen"] },
+    { "task": "run unit tests in terminal", "expectIncludes": ["Shell"], "expectExcludes": ["BrowserOpen"] }
+  ]
+}

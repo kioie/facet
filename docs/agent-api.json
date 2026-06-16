@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Facet MCP API",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "JSON schemas and example responses for Facet MCP tools. Used by agents for auto-discovery.",
   "tools": [
     {

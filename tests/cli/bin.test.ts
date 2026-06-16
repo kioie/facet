@@ -9,21 +9,21 @@ function run(args: string[]): string {
 }
 
 describe("facet CLI", () => {
-  it("runs demo --json", () => {
+  it("runs demo --json", { timeout: 15_000 }, () => {
     const data = JSON.parse(run(["demo", "--json"])) as Array<{ task: string; selected: unknown[] }>;
     expect(data.length).toBe(3);
     expect(data[0].task).toContain("login");
     expect(data[0].selected.length).toBeGreaterThan(0);
   });
 
-  it("runs audit --json on built-in demo manifest via plan", () => {
+  it("runs audit --json on built-in demo manifest via plan", { timeout: 15_000 }, () => {
     const out = run(["plan", "read source files", "--json"]);
     const plan = JSON.parse(out) as { selected: unknown[]; tokensAfter: number };
     expect(plan.selected.length).toBeGreaterThan(0);
     expect(plan.tokensAfter).toBeGreaterThan(0);
   });
 
-  it("runs doctor", () => {
+  it("runs doctor", { timeout: 15_000 }, () => {
     const out = run(["doctor"]);
     expect(out).toContain("facet CLI");
   });

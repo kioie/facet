@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-import { Command } from "commander";
+import { execSync, spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
+import { Command } from "commander";
 import { auditToolSurface, defaultConfig, loadConfig, routeTools, resolveProfile } from "../index.js";
 import { startFacetMcpServer } from "../mcp/server.js";
 import type { ToolDefinition } from "../core/types.js";
@@ -10,7 +11,7 @@ const program = new Command();
 program
   .name("facet")
   .description("Task-aware MCP tool surface for coding agents")
-  .version("0.1.4");
+  .version("0.1.5");
 
 program
   .command("audit")
@@ -118,6 +119,33 @@ program
     };
     console.log(JSON.stringify(snippet, null, 2));
   });
+
+program
+  .command("registry")
+  .description("MCP Registry helpers (validate server.json, publish)")
+  .addCommand(
+    new Command("validate")
+      .description("Validate server.json against the MCP Registry schema")
+      .argument("[path]", "Path to server.json", "server.json")
+      .action((path: string) => {
+        try {
+          execSync(`mcp-publisher validate ${JSON.stringify(path)}`, { stdio: "inherit" });
+        } catch {
+          const raw = readFileSync(path, "utf8");
+          JSON.parse(raw);
+          console.log(`✓ ${path} is valid JSON (install mcp-publisher for schema validation)`);
+        }
+      }),
+  )
+  .addCommand(
+    new Command("publish")
+      .description("Publish server.json to the MCP Registry (requires mcp-publisher login)")
+      .argument("[path]", "Path to server.json", "server.json")
+      .action((path: string) => {
+        const result = spawnSync("mcp-publisher", ["publish", path], { stdio: "inherit" });
+        process.exit(result.status ?? 1);
+      }),
+  );
 
 program
   .command("demo")

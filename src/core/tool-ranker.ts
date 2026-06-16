@@ -11,17 +11,31 @@ const PHRASE_ALIASES: Array<[RegExp, string]> = [
   [/\bunit\s+tests?\b/gi, "unit_test"],
   [/\bcode\s+review\b/gi, "code_review"],
   [/\bworking\s+tree\b/gi, "working_tree"],
+  [/\bwebhook\s+signature\b/gi, "webhook_signature"],
+  [/\bdatabase\s+migrations?\b/gi, "database_migration"],
+  [/\bconfluence\s+runbook\b/gi, "confluence_runbook"],
 ];
+
+const SERVICE_ALIASES: Record<string, string[]> = {
+  gcp: ["gcp", "gcloud", "google_cloud"],
+  gcloud: ["gcp", "gcloud", "google_cloud"],
+  jira: ["jira", "atlassian"],
+  atlassian: ["jira", "atlassian", "confluence"],
+};
 
 const ACTION_VERBS = [
   "list", "create", "post", "query", "read", "write", "search", "get", "update",
   "delete", "run", "deploy", "review", "merge", "execute", "debug", "fix",
+  "investigate", "check",
 ];
 
 const KNOWN_SERVICES = [
   "datadog", "notion", "slack", "github", "stripe", "linear", "figma", "sentry",
-  "postgres", "kubernetes", "jira", "atlassian",
+  "postgres", "kubernetes", "jira", "atlassian", "gcp", "gcloud", "cloudflare",
+  "supabase", "vercel", "redis", "mongodb", "docker",
 ];
+
+const MONOREPO_RUNTIMES = ["turbo", "nx", "pnpm", "lerna"];
 
 function normalizeTaskText(text: string): string {
   let normalized = text.toLowerCase();
@@ -81,7 +95,11 @@ export function scoreTool(task: string, tool: ToolDefinition): number {
   else if (taskLower.includes("datadog") && /datadog|metrics/.test(tool.name.toLowerCase())) score += 0.5;
 
   for (const verb of ACTION_VERBS) {
-    if (taskLower.includes(verb) && (toolDocLower.includes(verb) || tool.name.toLowerCase().includes(verb))) {
+    const verbPattern = new RegExp(`\\b${verb}\\b`);
+    if (
+      verbPattern.test(taskLower) &&
+      (toolDocLower.includes(verb) || tool.name.toLowerCase().includes(verb))
+    ) {
       score += 0.3;
       break;
     }
@@ -93,14 +111,63 @@ export function scoreTool(task: string, tool: ToolDefinition): number {
   if (serviceMatches.length > 0) {
     const toolNs = ns ?? tool.name.toLowerCase().split("__")[1];
     const toolName = tool.name.toLowerCase();
-    const matchesService = serviceMatches.some(
-      (service) => toolNs === service || toolName.includes(service),
-    );
+    const matchesService = serviceMatches.some((service) => {
+      const aliases = SERVICE_ALIASES[service] ?? [service];
+      return aliases.some(
+        (alias) => toolNs === alias || toolName.includes(alias),
+      );
+    });
     if (!matchesService) {
       score = Math.min(score * 0.05, 0.04);
     } else {
       score += 0.35;
     }
+  }
+
+  const toolNs = ns ?? tool.name.toLowerCase().split("__")[1];
+  const wantsMonorepoRuntime =
+    /\b(test|tests|build|lint|install|deps|dependencies)\b/.test(taskLower) ||
+    /\b(run|execute)\b/.test(taskLower);
+  const isMonorepoContext = /\b(monorepo|workspace|packages\/|apps\/)\b/.test(taskLower);
+  const isInstallDepsTask =
+    /\binstall\b/.test(taskLower) && /\b(deps|dependencies)\b/.test(taskLower);
+  const runtimeMatch = taskLower.match(/\b(nx|turbo|pnpm|lerna)\b/);
+
+  if (/\bgrep\b/.test(taskLower) && /grep|search/.test(toolDocLower)) score += 0.45;
+  if (/\b(fix|read|edit|update)\b/.test(taskLower) && toolNs === "filesystem") score += 0.35;
+  if (/\binstall\b/.test(taskLower) && /\b(deps|dependencies|workspace)\b/.test(taskLower) && toolNs === "pnpm") {
+    score += 0.55;
+  }
+
+  if (/\bgrep\b/.test(taskLower) && toolNs && MONOREPO_RUNTIMES.includes(toolNs)) score *= 0.04;
+  if (/\b(fix|read|edit|debug)\b/.test(taskLower) && toolNs === "notion") score *= 0.04;
+  if (runtimeMatch && toolNs && MONOREPO_RUNTIMES.includes(toolNs) && toolNs !== runtimeMatch[1]) {
+    score *= 0.06;
+  }
+  if (
+    (/\binstall\b/.test(taskLower) && /\b(deps|dependencies)\b/.test(taskLower)) ||
+    /\bpnpm\b/.test(taskLower)
+  ) {
+    if (toolNs && MONOREPO_RUNTIMES.includes(toolNs) && toolNs !== "pnpm") score *= 0.06;
+  }
+
+  if (runtimeMatch && toolNs === runtimeMatch[1]) {
+    score += 0.65;
+  } else if (
+    isMonorepoContext &&
+    wantsMonorepoRuntime &&
+    !isInstallDepsTask &&
+    toolNs &&
+    MONOREPO_RUNTIMES.includes(toolNs)
+  ) {
+    score += 0.4;
+    if (/\b(test|tests)\b/.test(taskLower) && !runtimeMatch && toolNs === "turbo") score += 0.25;
+  } else if (toolNs && MONOREPO_RUNTIMES.includes(toolNs) && !wantsMonorepoRuntime && !runtimeMatch) {
+    score *= 0.04;
+  }
+
+  if (/\b(migration|migrate|sql|postgres|database)\b/.test(taskLower)) {
+    if (toolNs === "postgres" || /postgres|sql|database/.test(toolDocLower)) score += 0.35;
   }
 
   return score;

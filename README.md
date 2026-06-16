@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@kioie/facet?color=orange)](https://www.npmjs.com/package/@kioie/facet)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![eval](https://img.shields.io/badge/eval-16%2F16-brightgreen)](#evaluation)
+[![eval](https://img.shields.io/badge/eval-26%2F26-brightgreen)](#evaluation)
 [![MCP](https://img.shields.io/badge/MCP-native-purple)](docs/cursor.md)
 
 ---
@@ -153,7 +153,7 @@ See [SPEC.md](./SPEC.md) for the full algorithm.
 npm run eval
 ```
 
-Current score: **16/16** across agent-tools, MCP-heavy, github-tools, and edge-case fixtures.
+Current score: **26/26** across agent-tools, MCP-heavy, github-tools, edge-case, ops, and monorepo fixtures.
 
 ```
 ✓ read the login validation source file   → filesystem tools selected
@@ -221,7 +221,8 @@ const audit = auditToolSurface(tools);
 - [EXAMPLES.md](./EXAMPLES.md) — demo output and usage patterns
 - [AGENTS.md](./AGENTS.md) — full integration playbook with budget guidance
 - [docs/agent-api.json](./docs/agent-api.json) — JSON schemas with example responses
-- [integrations/](./integrations/) — Cursor, Claude Code, and GitHub Action configs
+- [docs/mcp-registry.md](./docs/mcp-registry.md) — MCP Registry publish and validation
+- [docs/mcp-registry.md](./docs/mcp-registry.md) — publish Facet to the MCP Registry
 
 ## Contributing
 

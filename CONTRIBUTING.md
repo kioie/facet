@@ -32,7 +32,7 @@ git clone https://github.com/kioie/facet
 cd facet
 npm install
 npm test          # unit tests
-npm run eval      # evaluation suite (10/10 cases)
+npm run eval      # evaluation suite (26/26 cases)
 npm run build     # TypeScript compile
 ```
 
@@ -56,6 +56,9 @@ eval/
     agent-tools.json      — agent-style tool manifest + eval cases
     mcp-heavy.json        — realistic MCP-heavy manifest + eval cases
     github-tools.json     — GitHub/Slack/git routing eval cases
+    edge-cases.json       — Stripe, Sentry, Linear, Postgres edge cases
+    ops-tools.json        — Jira, GCP, Cloudflare, Datadog ops routing
+    monorepo.json         — Turbo, Nx, pnpm monorepo workspace routing
   runner.ts               — evaluation runner
   results.md              — latest eval results
 ```
@@ -66,7 +69,7 @@ eval/
 2. Add namespace patterns and keyword heuristics for the new cluster
 3. Add fixture tools in `eval/fixtures/` that use the new namespace
 4. Add eval cases that expect the new cluster's tools to be selected
-5. Run `npm run eval` — score should stay at 6/6 or improve
+5. Run `npm run eval` — score should stay at 26/26 or improve
 
 ## Adding eval cases
 
@@ -78,7 +81,7 @@ eval/
 ## Submitting a PR
 
 - `npm test` must pass
-- `npm run eval` must pass (score >= current 10/10)
+- `npm run eval` must pass (score >= current 26/26)
 - Keep PRs focused — one feature or fix per PR
 - No AI-generated comments explaining what the code does
 

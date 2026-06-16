@@ -1,0 +1,41 @@
+{
+  "tools": [
+    { "name": "mcp__filesystem__read", "description": "Read file from workspace", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__filesystem__grep", "description": "Search file contents with regex across directories", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "pattern": { "type": "string" } } } },
+    { "name": "mcp__shell__run", "description": "Execute shell command in terminal", "namespace": "runtime", "inputSchema": { "type": "object", "properties": { "command": { "type": "string" } } } },
+    { "name": "mcp__turbo__run", "description": "Run turborepo task across monorepo workspace packages", "namespace": "turbo", "inputSchema": { "type": "object", "properties": { "task": { "type": "string" }, "filter": { "type": "string" } } } },
+    { "name": "mcp__nx__run", "description": "Run nx target in monorepo workspace project", "namespace": "nx", "inputSchema": { "type": "object", "properties": { "target": { "type": "string" }, "project": { "type": "string" } } } },
+    { "name": "mcp__pnpm__filter", "description": "Run pnpm command filtered to a workspace package", "namespace": "pnpm", "inputSchema": { "type": "object", "properties": { "filter": { "type": "string" }, "command": { "type": "string" } } } },
+    { "name": "mcp__github__create_pull_request", "description": "Create GitHub pull request", "namespace": "github", "inputSchema": { "type": "object", "properties": { "title": { "type": "string" } } } },
+    { "name": "mcp__typescript__find_references", "description": "Find TypeScript symbol references across monorepo", "namespace": "typescript", "inputSchema": { "type": "object", "properties": { "symbol": { "type": "string" } } } },
+    { "name": "mcp__notion__search", "description": "Search Notion workspace pages", "namespace": "notion", "inputSchema": { "type": "object", "properties": { "query": { "type": "string" } } } },
+    { "name": "mcp__slack__post_message", "description": "Post message to Slack channel", "namespace": "slack", "inputSchema": { "type": "object", "properties": { "channel": { "type": "string" } } } }
+  ],
+  "cases": [
+    {
+      "task": "run unit tests for web package in monorepo",
+      "expectIncludes": ["mcp__turbo__run"],
+      "expectExcludes": ["mcp__github__create_pull_request", "mcp__notion__search"]
+    },
+    {
+      "task": "grep for AuthProvider usage across packages",
+      "expectIncludes": ["mcp__filesystem__grep"],
+      "expectExcludes": ["mcp__turbo__run", "mcp__slack__post_message"]
+    },
+    {
+      "task": "fix login bug in packages/api src",
+      "expectIncludes": ["mcp__filesystem__read"],
+      "expectExcludes": ["mcp__nx__run", "mcp__notion__search"]
+    },
+    {
+      "task": "install deps in apps/web workspace",
+      "expectIncludes": ["mcp__pnpm__filter"],
+      "expectExcludes": ["mcp__github__create_pull_request", "mcp__turbo__run"]
+    },
+    {
+      "task": "run nx build for shared-ui library",
+      "expectIncludes": ["mcp__nx__run"],
+      "expectExcludes": ["mcp__pnpm__filter", "mcp__notion__search"]
+    }
+  ]
+}

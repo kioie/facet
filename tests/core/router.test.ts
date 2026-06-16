@@ -120,20 +120,52 @@ describe("scoreTool service routing", () => {
     expect(listScore).toBeGreaterThan(createScore);
   });
 
-  it("normalizes pull request phrases", () => {
-    const prTool: ToolDefinition = {
-      name: "mcp__github__get_pull_request",
-      description: "Get pull request details",
-      namespace: "github",
+  it("routes gcp tasks to gcp or gcloud tools", () => {
+    const gcpTool: ToolDefinition = {
+      name: "mcp__gcp__query_logs",
+      description: "Query Google Cloud logs",
+      namespace: "gcp",
     };
-    const issueTool: ToolDefinition = {
-      name: "mcp__github__list_issues",
-      description: "List issues",
-      namespace: "github",
+    const jiraTool: ToolDefinition = {
+      name: "mcp__jira__search_issues",
+      description: "Search Jira issues",
+      namespace: "jira",
     };
-    const prScore = scoreTool("merge pull request after review", prTool);
-    const issueScore = scoreTool("merge pull request after review", issueTool);
-    expect(prScore).toBeGreaterThan(issueScore);
+    const gcpScore = scoreTool("query gcp logs for auth service errors", gcpTool);
+    const jiraScore = scoreTool("query gcp logs for auth service errors", jiraTool);
+    expect(gcpScore).toBeGreaterThan(jiraScore);
+  });
+
+  it("routes cloudflare tasks away from unrelated services", () => {
+    const cfTool: ToolDefinition = {
+      name: "mcp__cloudflare__list_workers",
+      description: "List Cloudflare Workers",
+      namespace: "cloudflare",
+    };
+    const notionTool: ToolDefinition = {
+      name: "mcp__notion__search",
+      description: "Search Notion",
+      namespace: "notion",
+    };
+    const cfScore = scoreTool("list cloudflare workers in production", cfTool);
+    const notionScore = scoreTool("list cloudflare workers in production", notionTool);
+    expect(cfScore).toBeGreaterThan(notionScore);
+  });
+
+  it("does not treat runbook as a shell run task", () => {
+    const shellTool: ToolDefinition = {
+      name: "mcp__shell__run",
+      description: "Execute shell command",
+      namespace: "runtime",
+    };
+    const atlassianTool: ToolDefinition = {
+      name: "mcp__atlassian__get_page",
+      description: "Get Confluence page content",
+      namespace: "atlassian",
+    };
+    const shellScore = scoreTool("read confluence runbook for incident response", shellTool);
+    const atlassianScore = scoreTool("read confluence runbook for incident response", atlassianTool);
+    expect(atlassianScore).toBeGreaterThan(shellScore);
   });
 });
 

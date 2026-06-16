@@ -51,6 +51,8 @@ const agent = runFixture("agent-tools.json", budget);
 const mcp = runFixture("mcp-heavy.json", budget);
 const github = runFixture("github-tools.json", budget);
 const edge = runFixture("edge-cases.json", budget);
+const ops = runFixture("ops-tools.json", budget);
+const monorepo = runFixture("monorepo.json", budget);
 
 const report = [
   "# Facet evaluation report",
@@ -63,12 +65,19 @@ const report = [
   "",
   edge.report,
   "",
-  `Aggregate: ${agent.hits + mcp.hits + github.hits + edge.hits}/${agent.total + mcp.total + github.total + edge.total}`,
+  ops.report,
+  "",
+  monorepo.report,
+  "",
+  `Aggregate: ${agent.hits + mcp.hits + github.hits + edge.hits + ops.hits + monorepo.hits}/${agent.total + mcp.total + github.total + edge.total + ops.total + monorepo.total}`,
 ].join("\n");
 
 writeFileSync(join(__dirname, "results.md"), report);
 console.log(report);
 
 process.exit(
-  agent.hits + mcp.hits + github.hits + edge.hits === agent.total + mcp.total + github.total + edge.total ? 0 : 1,
+  agent.hits + mcp.hits + github.hits + edge.hits + ops.hits + monorepo.hits ===
+    agent.total + mcp.total + github.total + edge.total + ops.total + monorepo.total
+    ? 0
+    : 1,
 );

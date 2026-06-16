@@ -1,0 +1,42 @@
+{
+  "tools": [
+    { "name": "mcp__filesystem__read", "description": "Read file from workspace", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__filesystem__write", "description": "Write file to workspace", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__jira__search_issues", "description": "Search Jira issues with JQL", "namespace": "jira", "inputSchema": { "type": "object", "properties": { "jql": { "type": "string" } } } },
+    { "name": "mcp__atlassian__get_page", "description": "Get Confluence page content", "namespace": "atlassian", "inputSchema": { "type": "object", "properties": { "pageId": { "type": "string" } } } },
+    { "name": "mcp__gcp__query_logs", "description": "Query Google Cloud Logging entries", "namespace": "gcp", "inputSchema": { "type": "object", "properties": { "filter": { "type": "string" } } } },
+    { "name": "mcp__gcloud__list_resources", "description": "List GCP cloud resources", "namespace": "gcloud", "inputSchema": { "type": "object", "properties": { "project": { "type": "string" } } } },
+    { "name": "mcp__cloudflare__list_workers", "description": "List Cloudflare Workers deployments", "namespace": "cloudflare", "inputSchema": { "type": "object", "properties": { "account": { "type": "string" } } } },
+    { "name": "mcp__datadog__query_metrics", "description": "Query Datadog metrics and timeseries", "namespace": "datadog", "inputSchema": { "type": "object", "properties": { "query": { "type": "string" } } } },
+    { "name": "mcp__slack__post_message", "description": "Post message to Slack channel", "namespace": "slack", "inputSchema": { "type": "object", "properties": { "channel": { "type": "string" } } } },
+    { "name": "mcp__notion__search", "description": "Search Notion workspace pages", "namespace": "notion", "inputSchema": { "type": "object", "properties": { "query": { "type": "string" } } } },
+    { "name": "mcp__shell__run", "description": "Execute shell command in terminal", "namespace": "runtime", "inputSchema": { "type": "object", "properties": { "command": { "type": "string" } } } }
+  ],
+  "cases": [
+    {
+      "task": "search jira tickets for payment outage",
+      "expectIncludes": ["mcp__jira__search_issues"],
+      "expectExcludes": ["mcp__notion__search", "mcp__cloudflare__list_workers"]
+    },
+    {
+      "task": "query gcp logs for auth service errors",
+      "expectIncludes": ["mcp__gcp__query_logs"],
+      "expectExcludes": ["mcp__jira__search_issues", "mcp__slack__post_message"]
+    },
+    {
+      "task": "list cloudflare workers in production",
+      "expectIncludes": ["mcp__cloudflare__list_workers"],
+      "expectExcludes": ["mcp__gcp__query_logs", "mcp__notion__search"]
+    },
+    {
+      "task": "check datadog latency for api gateway",
+      "expectIncludes": ["mcp__datadog__query_metrics"],
+      "expectExcludes": ["mcp__jira__search_issues", "mcp__filesystem__write"]
+    },
+    {
+      "task": "read confluence runbook for incident response",
+      "expectIncludes": ["mcp__atlassian__get_page"],
+      "expectExcludes": ["mcp__cloudflare__list_workers", "mcp__shell__run"]
+    }
+  ]
+}

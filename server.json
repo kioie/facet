@@ -1,18 +1,22 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.kioie/facet",
   "title": "Facet",
   "description": "Task-aware MCP tool router for coding agents. Routes token-budgeted tool subsets per subtask.",
-  "version": "0.1.4",
-  "homepage": "https://github.com/kioie/facet",
-  "license": "MIT",
-  "categories": ["developer-tools", "ai-agents", "mcp"],
-  "tags": ["mcp", "tool-routing", "context-window", "cursor", "claude-code", "coding-agent"],
+  "version": "0.1.5",
+  "websiteUrl": "https://github.com/kioie/facet",
+  "repository": {
+    "url": "https://github.com/kioie/facet",
+    "source": "github",
+    "id": "1270879259"
+  },
   "packages": [
     {
       "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@kioie/facet",
-      "version": "0.1.4",
+      "version": "0.1.5",
+      "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
       },
@@ -24,25 +28,5 @@
         }
       ]
     }
-  ],
-  "tools": [
-    {
-      "name": "facet_plan_surface",
-      "description": "Select a task-specific subset of MCP tools under a token budget. Returns selected tools, deferred tools, and token savings percentage."
-    },
-    {
-      "name": "facet_audit_tools",
-      "description": "Audit token cost and capability clusters for a tool manifest."
-    },
-    {
-      "name": "facet_register_manifest",
-      "description": "Cache a full tool manifest server-side to avoid resending large arrays on every facet_plan_surface call."
-    }
-  ],
-  "links": {
-    "readme": "https://github.com/kioie/facet/blob/master/README.md",
-    "agents": "https://github.com/kioie/facet/blob/master/AGENTS.md",
-    "llms": "https://github.com/kioie/facet/blob/master/llms.txt",
-    "api-schema": "https://github.com/kioie/facet/blob/master/docs/agent-api.json"
-  }
+  ]
 }

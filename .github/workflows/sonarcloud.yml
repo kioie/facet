@@ -1,6 +1,5 @@
 # CI SonarCloud scan — uses sonar-project.properties.
-# Setup: SonarCloud → My Account → Security → Generate token → add repo secret SONAR_TOKEN
-# Disable Automatic Analysis in SonarCloud (Administration → Analysis Method) once SONAR_TOKEN is set.
+# Uses SONAR_TOKEN when set; falls back to GITHUB_TOKEN (SonarCloud GitHub binding).
 name: SonarCloud
 
 on:
@@ -30,28 +29,20 @@ jobs:
           node-version: "22"
           cache: npm
 
-      - id: sonar
+      - id: token
         run: |
           if [ -n "${{ secrets.SONAR_TOKEN }}" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "::add-mask::${{ secrets.SONAR_TOKEN }}"
+            echo "value=${{ secrets.SONAR_TOKEN }}" >> "$GITHUB_OUTPUT"
           else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::SONAR_TOKEN not set — skipping SonarCloud upload. Add repo secret to enable CI analysis."
+            echo "value=${{ secrets.GITHUB_TOKEN }}" >> "$GITHUB_OUTPUT"
           fi
 
       - run: npm ci
-        if: steps.sonar.outputs.enabled == 'true'
-
       - run: npm run test:coverage
-        if: steps.sonar.outputs.enabled == 'true'
 
       - name: SonarCloud Scan
-        if: steps.sonar.outputs.enabled == 'true'
         uses: SonarSource/sonarcloud-github-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-      - name: Sonar skipped (no token)
-        if: steps.sonar.outputs.enabled != 'true'
-        run: echo "SonarCloud workflow OK — configure SONAR_TOKEN for CI upload with coverage."
+          SONAR_TOKEN: ${{ steps.token.outputs.value }}

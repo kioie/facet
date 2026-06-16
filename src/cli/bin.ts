@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name("facet")
   .description("Task-aware MCP tool surface for coding agents")
-  .version("0.1.3");
+  .version("0.1.4");
 
 program
   .command("audit")

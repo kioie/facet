@@ -217,3 +217,93 @@ describe("auditToolSurface", () => {
     expect(report.clusters.length).toBeGreaterThan(0);
   });
 });
+
+describe("scoreTool monorepo heuristics", () => {
+  const nxTool: ToolDefinition = {
+    name: "mcp__nx__run",
+    namespace: "nx",
+    description: "Run nx targets in the monorepo",
+  };
+  const turboTool: ToolDefinition = {
+    name: "mcp__turbo__run",
+    namespace: "turbo",
+    description: "Run turbo pipeline",
+  };
+  const pnpmTool: ToolDefinition = {
+    name: "mcp__pnpm__filter",
+    namespace: "pnpm",
+    description: "Run pnpm in workspace filter",
+  };
+  const notionTool: ToolDefinition = {
+    name: "mcp__notion__search",
+    namespace: "notion",
+    description: "Search notion",
+  };
+
+  it("prefers matching nx runtime for nx build tasks", () => {
+    const nxScore = scoreTool("run nx build for shared-ui library in monorepo", nxTool);
+    const turboScore = scoreTool("run nx build for shared-ui library in monorepo", turboTool);
+    expect(nxScore).toBeGreaterThan(turboScore);
+  });
+
+  it("boosts pnpm for install deps in workspace tasks", () => {
+    const pnpmScore = scoreTool("install deps in apps/web workspace", pnpmTool);
+    const nxScore = scoreTool("install deps in apps/web workspace", nxTool);
+    expect(pnpmScore).toBeGreaterThan(nxScore);
+  });
+
+  it("penalizes notion when fixing code in monorepo packages", () => {
+    const notionScore = scoreTool("fix login bug in packages/api src", notionTool);
+    const fsTool: ToolDefinition = {
+      name: "mcp__filesystem__read",
+      namespace: "filesystem",
+      description: "Read source files",
+    };
+    const fsScore = scoreTool("fix login bug in packages/api src", fsTool);
+    expect(fsScore).toBeGreaterThan(notionScore);
+  });
+
+  it("penalizes monorepo runtimes for grep tasks", () => {
+    const grepScore = scoreTool("grep for AuthProvider usage across packages", nxTool);
+    const grepTool: ToolDefinition = {
+      name: "mcp__filesystem__grep",
+      namespace: "filesystem",
+      description: "Ripgrep workspace",
+    };
+    const fsScore = scoreTool("grep for AuthProvider usage across packages", grepTool);
+    expect(fsScore).toBeGreaterThan(grepScore);
+  });
+
+  it("boosts turbo for monorepo unit tests without explicit runtime", () => {
+    const turboScore = scoreTool("run unit tests for web package in monorepo", turboTool);
+    const shellTool: ToolDefinition = {
+      name: "Shell",
+      namespace: "runtime",
+      description: "Run shell",
+    };
+    const shellScore = scoreTool("run unit tests for web package in monorepo", shellTool);
+    expect(turboScore).toBeGreaterThan(shellScore);
+  });
+});
+
+describe("scoreTool edge cases", () => {
+  it("returns minimal score for empty task tokens", () => {
+    expect(scoreTool("  ", sampleTools[0]!)).toBe(0.01);
+  });
+
+  it("boosts postgres tools for migration tasks", () => {
+    const pgTool: ToolDefinition = {
+      name: "mcp__postgres__query",
+      namespace: "postgres",
+      description: "Run SQL queries",
+    };
+    const slackTool: ToolDefinition = {
+      name: "mcp__slack__post",
+      namespace: "slack",
+      description: "Post to slack",
+    };
+    expect(scoreTool("run database migration script in terminal", pgTool)).toBeGreaterThan(
+      scoreTool("run database migration script in terminal", slackTool),
+    );
+  });
+});

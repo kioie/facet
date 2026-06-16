@@ -5,6 +5,32 @@ const STOP = new Set([
   "this", "that", "from", "by", "at", "as", "be", "are", "was", "were", "your", "my",
 ]);
 
+const PHRASE_ALIASES: Array<[RegExp, string]> = [
+  [/\bpull\s+requests?\b/gi, "pull_request"],
+  [/\berror\s+rates?\b/gi, "error_rate"],
+  [/\bunit\s+tests?\b/gi, "unit_test"],
+  [/\bcode\s+review\b/gi, "code_review"],
+  [/\bworking\s+tree\b/gi, "working_tree"],
+];
+
+const ACTION_VERBS = [
+  "list", "create", "post", "query", "read", "write", "search", "get", "update",
+  "delete", "run", "deploy", "review", "merge", "execute", "debug", "fix",
+];
+
+const KNOWN_SERVICES = [
+  "datadog", "notion", "slack", "github", "stripe", "linear", "figma", "sentry",
+  "postgres", "kubernetes", "jira", "atlassian",
+];
+
+function normalizeTaskText(text: string): string {
+  let normalized = text.toLowerCase();
+  for (const [pattern, alias] of PHRASE_ALIASES) {
+    normalized = normalized.replace(pattern, alias);
+  }
+  return normalized;
+}
+
 function tokenize(text: string): string[] {
   return text
     .toLowerCase()
@@ -36,7 +62,8 @@ export function inferCluster(tool: ToolDefinition): string {
 }
 
 export function scoreTool(task: string, tool: ToolDefinition): number {
-  const taskTokens = tokenize(task);
+  const taskNormalized = normalizeTaskText(task);
+  const taskTokens = tokenize(taskNormalized);
   if (taskTokens.length === 0) return 0.01;
   const docTokens = new Set(tokenize(toolDocument(tool)));
   let hits = 0;
@@ -46,17 +73,33 @@ export function scoreTool(task: string, tool: ToolDefinition): number {
   }
   const idfBoost = tool.name.length < 24 ? 0.05 : 0;
   let score = hits / taskTokens.length + idfBoost;
-  const taskLower = task.toLowerCase();
+  const taskLower = taskNormalized;
+  const toolDocLower = toolDocument(tool).toLowerCase();
   const ns = tool.namespace?.toLowerCase();
+
   if (ns && taskLower.includes(ns)) score += 0.5;
   else if (taskLower.includes("datadog") && /datadog|metrics/.test(tool.name.toLowerCase())) score += 0.5;
 
-  const serviceMatch = taskLower.match(/\b(datadog|notion|slack|github|stripe|linear|figma|sentry)\b/);
-  if (serviceMatch) {
-    const service = serviceMatch[1]!;
+  for (const verb of ACTION_VERBS) {
+    if (taskLower.includes(verb) && (toolDocLower.includes(verb) || tool.name.toLowerCase().includes(verb))) {
+      score += 0.3;
+      break;
+    }
+  }
+
+  const serviceMatches = [
+    ...taskLower.matchAll(new RegExp(`\\b(${KNOWN_SERVICES.join("|")})\\b`, "g")),
+  ].map((match) => match[1]!);
+  if (serviceMatches.length > 0) {
     const toolNs = ns ?? tool.name.toLowerCase().split("__")[1];
-    if (toolNs && toolNs !== service && !tool.name.toLowerCase().includes(service)) {
-      score *= 0.2;
+    const toolName = tool.name.toLowerCase();
+    const matchesService = serviceMatches.some(
+      (service) => toolNs === service || toolName.includes(service),
+    );
+    if (!matchesService) {
+      score = Math.min(score * 0.05, 0.04);
+    } else {
+      score += 0.35;
     }
   }
 

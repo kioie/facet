@@ -103,6 +103,38 @@ describe("scoreTool service routing", () => {
     const notionScore = scoreTool("search notion for onboarding docs", notionTool);
     expect(notionScore).toBeGreaterThan(slackScore);
   });
+
+  it("boosts action verbs matching tool names", () => {
+    const listTool: ToolDefinition = {
+      name: "mcp__github__list_issues",
+      description: "List GitHub issues",
+      namespace: "github",
+    };
+    const createTool: ToolDefinition = {
+      name: "mcp__github__create_pull_request",
+      description: "Create pull request",
+      namespace: "github",
+    };
+    const listScore = scoreTool("list open issues on payments repo", listTool);
+    const createScore = scoreTool("list open issues on payments repo", createTool);
+    expect(listScore).toBeGreaterThan(createScore);
+  });
+
+  it("normalizes pull request phrases", () => {
+    const prTool: ToolDefinition = {
+      name: "mcp__github__get_pull_request",
+      description: "Get pull request details",
+      namespace: "github",
+    };
+    const issueTool: ToolDefinition = {
+      name: "mcp__github__list_issues",
+      description: "List issues",
+      namespace: "github",
+    };
+    const prScore = scoreTool("merge pull request after review", prTool);
+    const issueScore = scoreTool("merge pull request after review", issueTool);
+    expect(prScore).toBeGreaterThan(issueScore);
+  });
 });
 
 describe("inferCluster", () => {

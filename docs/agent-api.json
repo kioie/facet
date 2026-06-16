@@ -240,6 +240,10 @@
       "inputSchema": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Optional manifest id (default: auto-generated)"
+          },
           "tools": {
             "type": "array",
             "description": "Full tool manifest to cache",

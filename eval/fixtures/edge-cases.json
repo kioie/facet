@@ -1,0 +1,50 @@
+{
+  "tools": [
+    { "name": "mcp__filesystem__read", "description": "Read file from workspace", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__filesystem__write", "description": "Write file to workspace", "namespace": "filesystem", "inputSchema": { "type": "object", "properties": { "path": { "type": "string" } } } },
+    { "name": "mcp__shell__run", "description": "Execute shell command in terminal", "namespace": "runtime", "inputSchema": { "type": "object", "properties": { "command": { "type": "string" } } } },
+    { "name": "mcp__github__get_pull_request", "description": "Get GitHub pull request details and diff", "namespace": "github", "inputSchema": { "type": "object", "properties": { "number": { "type": "number" } } } },
+    { "name": "mcp__github__create_pull_request", "description": "Create GitHub pull request", "namespace": "github", "inputSchema": { "type": "object", "properties": { "title": { "type": "string" } } } },
+    { "name": "mcp__github__list_issues", "description": "List GitHub repository issues", "namespace": "github", "inputSchema": { "type": "object", "properties": { "state": { "type": "string" } } } },
+    { "name": "mcp__stripe__list_customers", "description": "List Stripe customers", "namespace": "stripe", "inputSchema": { "type": "object", "properties": { "email": { "type": "string" } } } },
+    { "name": "mcp__stripe__create_payment_intent", "description": "Create Stripe payment intent", "namespace": "stripe", "inputSchema": { "type": "object", "properties": { "amount": { "type": "number" } } } },
+    { "name": "mcp__sentry__list_issues", "description": "List Sentry error issues", "namespace": "sentry", "inputSchema": { "type": "object", "properties": { "query": { "type": "string" } } } },
+    { "name": "mcp__slack__post_message", "description": "Post message to Slack channel", "namespace": "slack", "inputSchema": { "type": "object", "properties": { "channel": { "type": "string" } } } },
+    { "name": "mcp__notion__search", "description": "Search Notion workspace pages", "namespace": "notion", "inputSchema": { "type": "object", "properties": { "query": { "type": "string" } } } },
+    { "name": "mcp__linear__create_issue", "description": "Create Linear issue ticket", "namespace": "linear", "inputSchema": { "type": "object", "properties": { "title": { "type": "string" } } } },
+    { "name": "mcp__postgres__query", "description": "Run SQL query against PostgreSQL", "namespace": "postgres", "inputSchema": { "type": "object", "properties": { "sql": { "type": "string" } } } },
+    { "name": "mcp__browser__screenshot", "description": "Capture browser screenshot", "namespace": "web", "inputSchema": { "type": "object", "properties": { "url": { "type": "string" } } } }
+  ],
+  "cases": [
+    {
+      "task": "fix stripe webhook signature validation",
+      "expectIncludes": ["mcp__stripe__list_customers"],
+      "expectExcludes": ["mcp__notion__search", "mcp__browser__screenshot"]
+    },
+    {
+      "task": "investigate sentry checkout errors",
+      "expectIncludes": ["mcp__sentry__list_issues"],
+      "expectExcludes": ["mcp__slack__post_message", "mcp__notion__search"]
+    },
+    {
+      "task": "run database migration script in terminal",
+      "expectIncludes": ["mcp__shell__run"],
+      "expectExcludes": ["mcp__browser__screenshot", "mcp__notion__search"]
+    },
+    {
+      "task": "create linear ticket for auth bug",
+      "expectIncludes": ["mcp__linear__create_issue"],
+      "expectExcludes": ["mcp__github__list_issues", "mcp__stripe__list_customers"]
+    },
+    {
+      "task": "merge pull request after code review",
+      "expectIncludes": ["mcp__github__get_pull_request"],
+      "expectExcludes": ["mcp__stripe__create_payment_intent", "mcp__browser__screenshot"]
+    },
+    {
+      "task": "query postgres for duplicate user records",
+      "expectIncludes": ["mcp__postgres__query"],
+      "expectExcludes": ["mcp__notion__search", "mcp__browser__screenshot"]
+    }
+  ]
+}

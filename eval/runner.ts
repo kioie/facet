@@ -50,6 +50,7 @@ const budget = Number(process.env.FACET_EVAL_BUDGET ?? 450);
 const agent = runFixture("agent-tools.json", budget);
 const mcp = runFixture("mcp-heavy.json", budget);
 const github = runFixture("github-tools.json", budget);
+const edge = runFixture("edge-cases.json", budget);
 
 const report = [
   "# Facet evaluation report",
@@ -60,12 +61,14 @@ const report = [
   "",
   github.report,
   "",
-  `Aggregate: ${agent.hits + mcp.hits + github.hits}/${agent.total + mcp.total + github.total}`,
+  edge.report,
+  "",
+  `Aggregate: ${agent.hits + mcp.hits + github.hits + edge.hits}/${agent.total + mcp.total + github.total + edge.total}`,
 ].join("\n");
 
 writeFileSync(join(__dirname, "results.md"), report);
 console.log(report);
 
 process.exit(
-  agent.hits + mcp.hits + github.hits === agent.total + mcp.total + github.total ? 0 : 1,
+  agent.hits + mcp.hits + github.hits + edge.hits === agent.total + mcp.total + github.total + edge.total ? 0 : 1,
 );

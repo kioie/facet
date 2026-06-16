@@ -10,17 +10,21 @@ const program = new Command();
 program
   .name("facet")
   .description("Task-aware MCP tool surface for coding agents")
-  .version("0.1.2");
+  .version("0.1.3");
 
 program
   .command("audit")
   .description("Measure token cost of a tool manifest JSON file")
   .argument("<manifest>", "Path to JSON array of tools")
-  .option("--json", "Compact JSON output")
+  .option("--json", "JSON output")
   .action((manifest: string, opts: { json?: boolean }) => {
     const tools = loadTools(manifest);
     const report = auditToolSurface(tools);
-    console.log(JSON.stringify(report, null, opts.json ? undefined : 2));
+    if (opts.json) {
+      console.log(JSON.stringify(report));
+    } else {
+      console.log(formatAuditReport(report));
+    }
   });
 
 program
@@ -47,7 +51,7 @@ program
       profile,
     });
     if (opts.json) {
-      console.log(JSON.stringify(plan, null, 2));
+      console.log(JSON.stringify(plan));
     } else {
       console.log(`Task: ${plan.task}`);
       console.log(`Tools: ${plan.selected.length}/${plan.selected.length + plan.deferred.length}`);
@@ -176,6 +180,18 @@ program
   });
 
 program.parse();
+
+function formatAuditReport(report: ReturnType<typeof auditToolSurface>): string {
+  const lines = [
+    `Tools: ${report.totalTools}`,
+    `Tokens: ${report.totalTokens.toLocaleString()}`,
+    "Clusters:",
+  ];
+  for (const cluster of [...report.clusters].sort((a, b) => b.tokens - a.tokens)) {
+    lines.push(`  ${cluster.label}: ${cluster.toolCount} tools, ${cluster.tokens} tok`);
+  }
+  return lines.join("\n");
+}
 
 function loadTools(path: string): ToolDefinition[] {
   const raw = JSON.parse(readFileSync(path, "utf8")) as unknown;

@@ -1,0 +1,5 @@
+# Critical paths — changes require review from the maintainer when branch protection is enabled.
+/src/mcp/       @kioie
+/src/cli/       @kioie
+/scripts/       @kioie
+/.github/       @kioie

@@ -7,7 +7,7 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "html"],
+      reporter: ["text", "html", "lcov"],
       include: ["src/**/*.ts"],
       exclude: ["src/cli/bin.ts", "src/mcp/server.ts", "src/index.ts"],
       thresholds: {

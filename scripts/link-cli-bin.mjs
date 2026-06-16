@@ -7,7 +7,8 @@ const initCwd = process.env.INIT_CWD;
 
 /** When developing from the package root, npm/npx does not link the package bin. */
 async function main() {
-  if (!initCwd || initCwd !== root) return;
+  // Skip when installed as a dependency in another project (postinstall only).
+  if (initCwd && initCwd !== root) return;
 
   const binJs = join(root, "bin", "facet.js");
   try {

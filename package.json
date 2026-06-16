@@ -43,7 +43,7 @@
     "integrations"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && chmod +x bin/facet.js",
+    "build": "tsc -p tsconfig.build.json && chmod +x bin/facet.js && node scripts/link-cli-bin.mjs",
     "dev": "tsc -p tsconfig.build.json --watch",
     "test": "vitest run",
     "test:watch": "vitest",

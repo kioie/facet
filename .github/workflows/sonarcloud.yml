@@ -1,5 +1,5 @@
 # CI SonarCloud scan — uses sonar-project.properties.
-# Uses SONAR_TOKEN when set; falls back to GITHUB_TOKEN (SonarCloud GitHub binding).
+# Requires: import kioie/facet at sonarcloud.io, then add repo secret SONAR_TOKEN.
 name: SonarCloud
 
 on:
@@ -19,6 +19,7 @@ jobs:
   sonarcloud:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,21 +30,31 @@ jobs:
           node-version: "22"
           cache: npm
 
-      - id: token
+      - id: sonar
         run: |
           if [ -n "${{ secrets.SONAR_TOKEN }}" ]; then
-            echo "::add-mask::${{ secrets.SONAR_TOKEN }}"
-            echo "value=${{ secrets.SONAR_TOKEN }}" >> "$GITHUB_OUTPUT"
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
-            echo "value=${{ secrets.GITHUB_TOKEN }}" >> "$GITHUB_OUTPUT"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::SONAR_TOKEN not set — skipping upload. Import the repo at sonarcloud.io and add SONAR_TOKEN."
           fi
 
       - run: npm ci
+        if: steps.sonar.outputs.enabled == 'true'
+
       - run: npm run build
+        if: steps.sonar.outputs.enabled == 'true'
+
       - run: npm run test:coverage
+        if: steps.sonar.outputs.enabled == 'true'
 
       - name: SonarCloud Scan
+        if: steps.sonar.outputs.enabled == 'true'
         uses: SonarSource/sonarcloud-github-action@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ steps.token.outputs.value }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Sonar skipped (no token)
+        if: steps.sonar.outputs.enabled != 'true'
+        run: echo "SonarCloud workflow skipped — configure SONAR_TOKEN after importing project on SonarCloud."

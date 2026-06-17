@@ -1,7 +1,7 @@
 {
   "name": "@kioie/facet",
-  "version": "0.1.6",
-  "description": "Task-aware MCP tool surface for coding agents — trim schema bloat, route tools by intent, integrate with Cursor and Claude Code.",
+  "version": "0.1.7",
+  "description": "Task-aware MCP tool router for coding agents — reduce tool-schema token bloat, route by intent under budget. Works with Cursor, Claude Code, and any MCP client.",
   "homepage": "https://github.com/kioie/facet#readme",
   "bugs": {
     "url": "https://github.com/kioie/facet/issues"
@@ -56,21 +56,22 @@
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "mcp-server",
+    "mcp-registry",
     "cursor",
     "claude-code",
+    "codex",
     "ai-agents",
-    "token-optimization",
     "coding-agent",
-    "tool-routing",
-    "llm",
-    "context-window",
     "agent-tools",
-    "mcp-server",
+    "tool-routing",
     "tool-selection",
+    "token-optimization",
+    "context-window",
     "schema-routing",
+    "llm",
     "openai",
-    "anthropic",
-    "codex"
+    "anthropic"
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",

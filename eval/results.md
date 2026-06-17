@@ -8,6 +8,16 @@
 
 **Score:** 3/3 (100%)
 
+# Eval: cursor-tools.json
+
+- [x] `find where login validation is implemented in auth module` → SemanticSearch, Grep, Read, Write
+- [x] `run npm test for the auth package` → Shell, Task, SemanticSearch, Grep
+- [x] `create a pull request for the bugfix branch` → mcp__github__create_pull_request, SemanticSearch, Grep, Read
+- [x] `search notion for onboarding documentation` → mcp__notion__search
+- [x] `launch explore subagent to map tool routing across the repo` → Task, CallMcpTool, mcp__github__create_pull_request, SemanticSearch
+
+**Score:** 5/5 (100%)
+
 # Eval: mcp-heavy.json
 
 - [x] `create a pull request for the bugfix branch` → mcp__github__create_pr, mcp__filesystem__read, mcp__filesystem__write, mcp__notion__search
@@ -56,4 +66,4 @@
 
 **Score:** 5/5 (100%)
 
-Aggregate: 26/26
+Aggregate: 31/31

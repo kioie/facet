@@ -1,31 +1,34 @@
 #!/usr/bin/env node
 import { execSync, spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { Command } from "commander";
 import { resolvePathWithinCwd } from "../core/paths.js";
+import { FACET_VERSION } from "../core/version.js";
 import { auditToolSurface, defaultConfig, loadConfig, routeTools, resolveProfile } from "../index.js";
 import { startFacetMcpServer } from "../mcp/server.js";
-import type { ToolDefinition } from "../core/types.js";
+import type { AuditReport, ToolDefinition } from "../core/types.js";
 
 const program = new Command();
 
 program
   .name("facet")
   .description("Task-aware MCP tool surface for coding agents")
-  .version("0.1.5");
+  .version(FACET_VERSION);
 
 program
   .command("audit")
   .description("Measure token cost of a tool manifest JSON file")
   .argument("<manifest>", "Path to JSON array of tools")
   .option("--json", "JSON output")
-  .action((manifest: string, opts: { json?: boolean }) => {
+  .option("--top <n>", "Show top N tools by token cost", "8")
+  .action((manifest: string, opts: { json?: boolean; top?: string }) => {
     const tools = loadTools(manifest);
     const report = auditToolSurface(tools);
     if (opts.json) {
       console.log(JSON.stringify(report));
     } else {
-      console.log(formatAuditReport(report));
+      const topN = Math.max(1, Number(opts.top) || 8);
+      console.log(formatAuditReport(report, { topN, manifest }));
     }
   });
 
@@ -93,10 +96,48 @@ program
   .command("doctor")
   .description("Environment self-check")
   .action(() => {
-    const nodeOk = process.version.match(/^v(2[0-9]|[3-9][0-9])/);
-    console.log(nodeOk ? "✓ Node.js >= 20" : "✗ Node.js 20+ required");
-    console.log("✓ facet CLI");
-    process.exit(nodeOk ? 0 : 1);
+    let ok = true;
+    const check = (pass: boolean, passMsg: string, failMsg: string) => {
+      console.log(pass ? `✓ ${passMsg}` : `✗ ${failMsg}`);
+      if (!pass) ok = false;
+    };
+
+    const nodeOk = Boolean(process.version.match(/^v(2[0-9]|[3-9][0-9])/));
+    check(nodeOk, `Node.js ${process.version} (>= 20)`, `Node.js 20+ required (got ${process.version})`);
+    console.log(`✓ facet CLI v${FACET_VERSION}`);
+
+    const npx = spawnSync("npx", ["--version"], { encoding: "utf8" });
+    check(npx.status === 0, "npx available (for zero-install MCP setup)", "npx not found — install Node.js npm");
+
+    if (existsSync("facet.json")) {
+      try {
+        loadConfig();
+        console.log("✓ facet.json found");
+      } catch (e) {
+        check(false, "", `facet.json invalid: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    } else {
+      console.log("· facet.json not found — run facet init to create profiles");
+    }
+
+    const demoAudit = auditToolSurface(demoTools());
+    console.log(
+      `· built-in demo: ${demoAudit.totalTools} tools, ${demoAudit.totalTokens.toLocaleString()} tokens`,
+    );
+
+    const publisher = spawnSync("mcp-publisher", ["validate", "--help"], { encoding: "utf8" });
+    if (publisher.status === 0) {
+      console.log("✓ mcp-publisher available (facet registry validate/publish)");
+    } else {
+      console.log("· mcp-publisher not installed — optional for MCP Registry publish");
+    }
+
+    console.log("\nNext steps:");
+    console.log("  npx @kioie/facet demo          # see token savings");
+    console.log("  npx @kioie/facet cursor        # MCP snippet for Cursor");
+    console.log("  facet audit ./your-tools.json  # audit your manifest");
+
+    process.exit(ok ? 0 : 1);
   });
 
 program
@@ -212,23 +253,65 @@ program
 
 program.parse();
 
-function formatAuditReport(report: ReturnType<typeof auditToolSurface>): string {
-  const lines = [
-    `Tools: ${report.totalTools}`,
-    `Tokens: ${report.totalTokens.toLocaleString()}`,
-    "Clusters:",
-  ];
+function formatAuditReport(
+  report: AuditReport,
+  opts: { topN: number; manifest?: string } = { topN: 8 },
+): string {
+  const lines: string[] = [];
+  if (opts.manifest) {
+    lines.push(`Manifest: ${opts.manifest}`);
+  }
+  lines.push(`Tools: ${report.totalTools}  |  Tokens: ${report.totalTokens.toLocaleString()}`);
+  lines.push("", "Clusters (by token cost):");
+  const maxClusterTok = Math.max(...report.clusters.map((c) => c.tokens), 1);
   for (const cluster of [...report.clusters].sort((a, b) => b.tokens - a.tokens)) {
-    lines.push(`  ${cluster.label}: ${cluster.toolCount} tools, ${cluster.tokens} tok`);
+    const bar = tokenBar(cluster.tokens, maxClusterTok, 20);
+    const pct = ((cluster.tokens / report.totalTokens) * 100).toFixed(0);
+    lines.push(
+      `  ${padRight(cluster.label, 16)} ${bar} ${cluster.tokens.toLocaleString()} tok (${pct}%) · ${cluster.toolCount} tools`,
+    );
+  }
+
+  const top = [...report.entries].sort((a, b) => b.tokens - a.tokens).slice(0, opts.topN);
+  if (top.length) {
+    lines.push("", `Top ${top.length} tools by token cost:`);
+    const maxToolTok = top[0]?.tokens ?? 1;
+    for (const entry of top) {
+      const bar = tokenBar(entry.tokens, maxToolTok, 16);
+      lines.push(`  ${padRight(entry.tool.name, 36)} ${bar} ${entry.tokens} tok`);
+    }
   }
   return lines.join("\n");
 }
 
+function tokenBar(value: number, max: number, width: number): string {
+  const filled = Math.max(1, Math.round((value / max) * width));
+  return "█".repeat(filled) + "░".repeat(width - filled);
+}
+
+function padRight(s: string, n: number): string {
+  return s.length >= n ? s.slice(0, n) : s + " ".repeat(n - s.length);
+}
+
 function loadTools(path: string): ToolDefinition[] {
   const safePath = resolvePathWithinCwd(path);
-  const raw = JSON.parse(readFileSync(safePath, "utf8")) as unknown;
-  if (!Array.isArray(raw)) throw new Error("Manifest must be a JSON array");
-  return raw as ToolDefinition[];
+  let rawText: string;
+  try {
+    rawText = readFileSync(safePath, "utf8");
+  } catch {
+    throw new Error(`Manifest not found: ${path} (resolved to ${safePath})`);
+  }
+  let raw: unknown;
+  try {
+    raw = JSON.parse(rawText);
+  } catch (e) {
+    throw new Error(`Invalid JSON in ${path}: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  if (Array.isArray(raw)) return raw as ToolDefinition[];
+  if (raw && typeof raw === "object" && Array.isArray((raw as { tools?: unknown }).tools)) {
+    return (raw as { tools: ToolDefinition[] }).tools;
+  }
+  throw new Error("Manifest must be a JSON array of tools, or { tools: [...] }");
 }
 
 function demoTools(): ToolDefinition[] {

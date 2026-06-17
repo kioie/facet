@@ -4,7 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@kioie/facet?color=orange)](https://www.npmjs.com/package/@kioie/facet)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![eval](https://img.shields.io/badge/eval-26%2F26-brightgreen)](#evaluation)
+[![eval](https://img.shields.io/badge/eval-31%2F31-brightgreen)](#evaluation)
 [![MCP](https://img.shields.io/badge/MCP-native-purple)](docs/cursor.md)
 
 ---
@@ -57,33 +57,35 @@ Tools: 10/23  |  3,210 tok → 1,160 tok  (64% saved)
 
 ---
 
-## Install
+## Quick start
 
-```bash
-npm install -g @kioie/facet
-facet doctor
-```
-
-Or zero-install with npx:
+**Try it in 10 seconds — no install:**
 
 ```bash
 npx @kioie/facet demo
 ```
 
-## Quick start
+Shows token savings on a realistic 22-tool manifest (filesystem, git, GitHub, Notion, Slack…).
 
 ```bash
-# 1. See what's in your tool manifest
-facet audit ./tools.json
+# Audit your own tool manifest (array or { "tools": [...] })
+npx @kioie/facet audit ./tools.json
 
-# 2. Route tools for a task under a budget
-facet plan "fix login validation bug" --manifest ./tools.json --budget 4000
+# Route tools for a specific task
+npx @kioie/facet plan "fix login validation bug" --manifest ./tools.json --budget 4000
 
-# 3. Try the built-in demo (no manifest needed)
+# Environment check + next steps
+npx @kioie/facet doctor
+
+# Write facet.json with coding/review profiles
+npx @kioie/facet init
+```
+
+**Global install (optional):**
+
+```bash
+npm install -g @kioie/facet
 facet demo
-
-# 4. Write a facet.json config with coding/review profiles
-facet init
 ```
 
 ## Cursor / Claude Code / Codex
@@ -153,7 +155,7 @@ See [SPEC.md](./SPEC.md) for the full algorithm.
 npm run eval
 ```
 
-Current score: **26/26** across agent-tools, MCP-heavy, github-tools, edge-case, ops, and monorepo fixtures.
+Current score: **31/31** across agent-tools, cursor-tools, MCP-heavy, github-tools, edge-case, ops, and monorepo fixtures.
 
 ```
 ✓ read the login validation source file   → filesystem tools selected

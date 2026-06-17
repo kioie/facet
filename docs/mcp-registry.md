@@ -18,7 +18,7 @@ mcp-publisher validate server.json
 Publishing requires the official [mcp-publisher](https://github.com/modelcontextprotocol/registry) CLI and a GitHub-authenticated login.
 
 ```bash
-# One-time auth (opens browser)
+# One-time auth (opens browser) — re-run if token expires
 mcp-publisher login
 
 # Publish current server.json
@@ -26,6 +26,8 @@ facet registry publish
 # or
 mcp-publisher publish server.json
 ```
+
+If publish fails with `401` / expired JWT, run `mcp-publisher login` again.
 
 After publishing, bump `version` in both `package.json` and `server.json` before the next release.
 

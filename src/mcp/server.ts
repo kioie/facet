@@ -6,6 +6,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { auditToolSurface, routeTools } from "../index.js";
 import { loadConfig, resolveProfile } from "../core/profile.js";
+import { FACET_VERSION } from "../core/version.js";
 import type { ToolDefinition } from "../core/types.js";
 
 const manifestCache = new Map<string, ToolDefinition[]>();
@@ -51,7 +52,7 @@ function resolveManifest(manifestId?: string, tools?: ToolDefinition[]): ToolDef
 
 export async function startFacetMcpServer(): Promise<void> {
   const server = new Server(
-    { name: "facet", version: "0.1.5" },
+    { name: "facet", version: FACET_VERSION },
     { capabilities: { tools: {} } },
   );
 

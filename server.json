@@ -3,7 +3,7 @@
   "name": "io.github.kioie/facet",
   "title": "Facet",
   "description": "Task-aware MCP tool router for coding agents. Routes token-budgeted tool subsets per subtask.",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "websiteUrl": "https://github.com/kioie/facet",
   "repository": {
     "url": "https://github.com/kioie/facet",
@@ -15,7 +15,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@kioie/facet",
-      "version": "0.1.5",
+      "version": "0.1.7",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"

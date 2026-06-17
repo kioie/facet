@@ -25,6 +25,15 @@ describe("facet CLI", () => {
 
   it("runs doctor", { timeout: 15_000 }, () => {
     const out = run(["doctor"]);
-    expect(out).toContain("facet CLI");
+    expect(out).toContain("facet CLI v");
+    expect(out).toContain("Next steps:");
+  });
+
+  it("runs audit with cluster bars", { timeout: 15_000 }, () => {
+    const manifest = join(process.cwd(), "eval/fixtures/mcp-heavy.json");
+    const out = run(["audit", manifest, "--top", "3"]);
+    expect(out).toContain("Clusters");
+    expect(out).toContain("Top 3 tools");
+    expect(out).toMatch(/█/);
   });
 });

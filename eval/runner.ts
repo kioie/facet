@@ -47,37 +47,26 @@ function runFixture(name: string, budgetTokens: number) {
 }
 
 const budget = Number(process.env.FACET_EVAL_BUDGET ?? 450);
-const agent = runFixture("agent-tools.json", budget);
-const mcp = runFixture("mcp-heavy.json", budget);
-const github = runFixture("github-tools.json", budget);
-const edge = runFixture("edge-cases.json", budget);
-const ops = runFixture("ops-tools.json", budget);
-const monorepo = runFixture("monorepo.json", budget);
+const fixtures = [
+  "agent-tools.json",
+  "cursor-tools.json",
+  "mcp-heavy.json",
+  "github-tools.json",
+  "edge-cases.json",
+  "ops-tools.json",
+  "monorepo.json",
+] as const;
+const results = fixtures.map((name) => ({ name, ...runFixture(name, budget) }));
 
 const report = [
   "# Facet evaluation report",
   "",
-  agent.report,
-  "",
-  mcp.report,
-  "",
-  github.report,
-  "",
-  edge.report,
-  "",
-  ops.report,
-  "",
-  monorepo.report,
-  "",
-  `Aggregate: ${agent.hits + mcp.hits + github.hits + edge.hits + ops.hits + monorepo.hits}/${agent.total + mcp.total + github.total + edge.total + ops.total + monorepo.total}`,
+  ...results.flatMap((r) => [r.report, ""]),
+  `Aggregate: ${results.reduce((s, r) => s + r.hits, 0)}/${results.reduce((s, r) => s + r.total, 0)}`,
 ].join("\n");
 
 writeFileSync(join(__dirname, "results.md"), report);
 console.log(report);
 
-process.exit(
-  agent.hits + mcp.hits + github.hits + edge.hits + ops.hits + monorepo.hits ===
-    agent.total + mcp.total + github.total + edge.total + ops.total + monorepo.total
-    ? 0
-    : 1,
-);
+const allPass = results.every((r) => r.hits === r.total);
+process.exit(allPass ? 0 : 1);

@@ -1,0 +1,179 @@
+{
+  "tools": [
+    {
+      "name": "SemanticSearch",
+      "description": "Semantic search that finds code by meaning, not exact text",
+      "namespace": "filesystem",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Complete question about what you want to understand" },
+          "target_directories": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    {
+      "name": "Grep",
+      "description": "Search file contents with ripgrep regex patterns",
+      "namespace": "filesystem",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pattern": { "type": "string" },
+          "path": { "type": "string" },
+          "glob": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "Read",
+      "description": "Read file contents from the workspace",
+      "namespace": "filesystem",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "offset": { "type": "number" },
+          "limit": { "type": "number" }
+        }
+      }
+    },
+    {
+      "name": "Write",
+      "description": "Write or overwrite a file in the workspace",
+      "namespace": "filesystem",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "contents": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "Shell",
+      "description": "Execute shell commands in the project environment",
+      "namespace": "runtime",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": { "type": "string" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "Task",
+      "description": "Launch a subagent for complex multi-step exploration",
+      "namespace": "runtime",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prompt": { "type": "string" },
+          "subagent_type": { "type": "string", "enum": ["explore", "generalPurpose", "shell"] }
+        }
+      }
+    },
+    {
+      "name": "CallMcpTool",
+      "description": "Invoke a tool from an enabled MCP server",
+      "namespace": "mcp",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "server": { "type": "string" },
+          "toolName": { "type": "string" },
+          "arguments": { "type": "object" }
+        }
+      }
+    },
+    {
+      "name": "mcp__github__create_pull_request",
+      "description": "Create a GitHub pull request",
+      "namespace": "github",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "owner": { "type": "string" },
+          "repo": { "type": "string" },
+          "title": { "type": "string" },
+          "head": { "type": "string" },
+          "base": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "mcp__notion__search",
+      "description": "Search the Notion workspace",
+      "namespace": "notion",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "mcp__slack__post_message",
+      "description": "Post a message to Slack",
+      "namespace": "slack",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "channel": { "type": "string" },
+          "text": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "WebSearch",
+      "description": "Search the web for real-time information",
+      "namespace": "web",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "search_term": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "GenerateImage",
+      "description": "Generate an image from a text description",
+      "namespace": "media",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "description": { "type": "string" },
+          "filename": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "cases": [
+    {
+      "task": "find where login validation is implemented in auth module",
+      "expectIncludes": ["SemanticSearch", "Grep"],
+      "expectExcludes": ["GenerateImage", "mcp__slack__post_message"]
+    },
+    {
+      "task": "run npm test for the auth package",
+      "expectIncludes": ["Shell"],
+      "expectExcludes": ["GenerateImage", "mcp__notion__search"]
+    },
+    {
+      "task": "create a pull request for the bugfix branch",
+      "expectIncludes": ["mcp__github__create_pull_request"],
+      "expectExcludes": ["GenerateImage", "WebSearch"]
+    },
+    {
+      "task": "search notion for onboarding documentation",
+      "expectIncludes": ["mcp__notion__search"],
+      "expectExcludes": ["Shell", "GenerateImage"]
+    },
+    {
+      "task": "launch explore subagent to map tool routing across the repo",
+      "expectIncludes": ["Task", "SemanticSearch"],
+      "expectExcludes": ["GenerateImage", "mcp__slack__post_message"]
+    }
+  ]
+}

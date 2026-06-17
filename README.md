@@ -57,36 +57,35 @@ Tools: 10/23  |  3,210 tok → 1,160 tok  (64% saved)
 
 ---
 
-## Install
+## Quick start
+
+**Try it in 10 seconds — no install:**
+
+```bash
+npx @kioie/facet demo
+```
+
+Shows token savings on a realistic 22-tool manifest (filesystem, git, GitHub, Notion, Slack…).
+
+```bash
+# Audit your own tool manifest (array or { "tools": [...] })
+npx @kioie/facet audit ./tools.json
+
+# Route tools for a specific task
+npx @kioie/facet plan "fix login validation bug" --manifest ./tools.json --budget 4000
+
+# Environment check + next steps
+npx @kioie/facet doctor
+
+# Write facet.json with coding/review profiles
+npx @kioie/facet init
+```
+
+**Global install (optional):**
 
 ```bash
 npm install -g @kioie/facet
-facet doctor
-```
-
-Or zero-install with npx:
-
-```bash
-npx @kioie/facet demo
-```
-
-## Quick start
-
-```bash
-# 1. See what's in your tool manifest (supports array or { "tools": [...] })
-facet audit ./tools.json
-
-# 2. Route tools for a task under a budget
-facet plan "fix login validation bug" --manifest ./tools.json --budget 4000
-
-# 3. Try the built-in demo (no manifest needed)
-npx @kioie/facet demo
-
-# 4. Check your environment
-facet doctor
-
-# 5. Write a facet.json config with coding/review profiles
-facet init
+facet demo
 ```
 
 ## Cursor / Claude Code / Codex
